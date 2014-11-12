@@ -1,4 +1,4 @@
-from ascii_drawing import Canvas, Square, figure_from_file, GeneralColorConversor, ScaleConversor
+from ascii_drawing import Canvas, Square, figure_from_string, GeneralColorConversor, ScaleConversor
 class ChessBoard(object):
     def __init__(self, side, white_darkness, black_darkness):
         self.extra = 4
@@ -64,7 +64,12 @@ class ChessPiecesSet(object):
     def __getitem__(self, piece_name):
         return self.pieces[piece_name]
 
-ascii_pieces = {p : figure_from_file('ascii_chess_pieces/' + p) 
+from os import path
+from pkg_resources import resource_string
+#_pieces_path = os.path.abspath(
+                #os.path.join(os.path.dirname(__file__), 'ascii_chess_pieces'))
+#ascii_pieces = {p : figure_from_file(os.path.join(_pieces_path, p))
+ascii_pieces = {p : figure_from_string(resource_string('ascii_chess', path.join('ascii_chess_pieces', p)))
         for p in ('pawn', 'bishop', 'knight', 'rook', 'queen', 'king')}
 
 if __name__ == '__main__':

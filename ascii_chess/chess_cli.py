@@ -1,6 +1,7 @@
 from .chess_rules import IllegalMoveException
 from .chess_play import GamingEngine
-if __name__ == '__main__':
+
+def play():
     help_message = '''Options:
         - help
         - diagram
@@ -52,3 +53,6 @@ if __name__ == '__main__':
             print busy_msg
             print_engine_move(gaming.play())
     print gaming.game.result()
+
+if __name__ == '__main__':
+    play()

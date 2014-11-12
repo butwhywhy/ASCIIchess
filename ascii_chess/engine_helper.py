@@ -100,20 +100,19 @@ class EvalEngine(Engine):
         return self._analyse(pos, pre_value, 0)
 
 if __name__ == '__main__':
-    #pos0 = {'b8': ('king', True), 'a6': ('king', False), 'a5': ('rook', False)}
     from .chess_rules import parse_square
-    #pos0 = {parse_square('b8'): ('king', True), parse_square('a6'): ('king', False), parse_square('a5'): ('rook', False)}
+    pos0 = {parse_square('b8'): ('king', True), parse_square('a6'): ('king', False), parse_square('a5'): ('rook', False)}
     #pos0 = {parse_square('b8'): ('king', True), parse_square('a6'): ('king', False), parse_square('h8'): ('rook', False)}
-    pos0 = {parse_square('b8'): ('king', True), parse_square('a6'): ('king', False), parse_square('h5'): ('rook', False)}
-    poslist = {'e8': ('king', True), 'e6': ('pawn', False), 'f7': ('pawn', True), 'e7': ('pawn', True), 'd7': ('pawn', True), 'f8': ('bishop', True), 'g8': ('knight', True), 'c4': ('bishop', False), 'e1': ('king', False)}
-    pos0 = {parse_square(sq): value for sq, value in poslist.iteritems()}
+    #pos0 = {parse_square('b8'): ('king', True), parse_square('a6'): ('king', False), parse_square('h5'): ('rook', False)}
+    #poslist = {'e8': ('king', True), 'e6': ('pawn', False), 'f7': ('pawn', True), 'e7': ('pawn', True), 'd7': ('pawn', True), 'f8': ('bishop', True), 'g8': ('knight', True), 'c4': ('bishop', False), 'e1': ('king', False)}
+    #pos0 = {parse_square(sq): value for sq, value in poslist.iteritems()}
     from .chess_play import Game
     from .chess_rules import Position
     pos = Position(position=pos0)
     #pos = Position(position=pos0, white_moves=False)
     print pos.get_position()
     game = Game(pos)
-    game.move('exf7')
+    #game.move('exf7')
     #game.move('Rh8')
     evaluator = SimpleEvaluator()
     engine = EvalEngine(evaluator, 3)
