@@ -74,7 +74,7 @@ class Position(object):
     def __init__(self, position=None, white_moves=True, 
             white_can_castle_long=None, white_can_castle_short=None, 
             black_can_castle_long=None, black_can_castle_short=None, 
-            col_pawn_moved_2 = None):
+            col_pawn_moved_2=None):
         if position is None:
             position = INITIAL
 
@@ -179,7 +179,6 @@ class Position(object):
             (y_t, x_t) = (y, x)
             while m < moves_gen['limit']:
                 m += 1
-                #print piece, g
                 (y_t, x_t) = (y_t + g[0], x_t + g[1])
                 if 0 <= y_t < 8 and 0 <= x_t < 8:
                     t_content = self.get_square_content((y_t, x_t))
@@ -194,7 +193,6 @@ class Position(object):
                             except IllegalMoveException:
                                 break
                     else:
-                        #print piece, format_square(y,x), format_square(y_t, x_t)
                         try:
                             yield self.Move(piece, self, (y,x), 
                                     (y_t, x_t))
@@ -266,7 +264,6 @@ class Position(object):
         def proccess(self):
             self.changes = {self.sq_from: None, 
                     self.sq_to: ((self.promoted if self.promoted else self.main_piece, self.is_black))}
-            #(t_y, t_x) = parse_square(self.sq_to)
             (t_y, t_x) = self.sq_to
             if self.main_piece == 'pawn' and self.ap:
                 if t_y == 2:
@@ -275,7 +272,6 @@ class Position(object):
                     t_y = 4
                 self.changes[(t_y, t_x)] = None
             elif self.main_piece == 'king':
-                #(y, x) = parse_square(self.sq_from)
                 (y, x) = self.sq_from
                 if x == 4:
                     if t_x == 6:
@@ -329,7 +325,6 @@ class Position(object):
                     (self.captured, _) = self.position.get_square_content((t_y, t_x))
 
             self.to_position = Position(
-                    #pos_matrix=to_matrix,
                     position=to_pos, 
                     white_moves=self.is_black,
                     white_can_castle_long=white_can_castle_long, 
@@ -394,7 +389,6 @@ class Position(object):
 
     def can_capture(self, is_black, square):
         for sq, (piece, _) in self.get_position(is_black=is_black).iteritems():
-            #(y, x) = parse_square(sq)
             (y, x) = sq
             moves_gen = moves_generator(piece, is_black, True, y)
             for g in moves_gen['gen']:

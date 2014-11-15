@@ -68,54 +68,18 @@ class EvalEngine(Engine):
         if depth == self.max_depth:
             return [pre_value]
 
-            #yy#print '1'
-            #yy#e = self.evaluator.eval0(pos)
-            #yyreturn [self.evaluator.eval0(pos)]
         moves_rank = []
-        #print pre_pos.get_position()
         for m in pre_pos.all_moves():
             value = self.evaluator.eval(pre_pos, pre_value, m)
             an = self._analyse(m.to_position, value, depth + 1)
             an.append(m.notation())
             moves_rank.append(an)
 
-            #yy#print m
-            #yyan = self.analyse(pos.move(m.notation()), depth + 1)
-            #yy#print an
-            #yyan.append(m.notation())
-            #yymoves_rank.append(an)
-
-        #yy#moves_rank = [self.analyse(pos.move(m.notation()), depth + 1).append(m) for m in pos.all_moves()]
         if not moves_rank:
             return [pre_value]
-            #yy#print '2'
-            #yyreturn [self.evaluator.eval0(pos)]
-        #print '3'
-        #print moves_rank
-        #print "max %s; min %s " % (max(moves_rank), min(moves_rank))
         return max(moves_rank) if pre_pos.white_moves else min(moves_rank) 
         
     def analyse(self, pos):
         pre_value = self.evaluator.eval0(pos)
         return self._analyse(pos, pre_value, 0)
-
-if __name__ == '__main__':
-    from .chess_rules import parse_square
-    pos0 = {parse_square('b8'): ('king', True), parse_square('a6'): ('king', False), parse_square('a5'): ('rook', False)}
-    #pos0 = {parse_square('b8'): ('king', True), parse_square('a6'): ('king', False), parse_square('h8'): ('rook', False)}
-    #pos0 = {parse_square('b8'): ('king', True), parse_square('a6'): ('king', False), parse_square('h5'): ('rook', False)}
-    #poslist = {'e8': ('king', True), 'e6': ('pawn', False), 'f7': ('pawn', True), 'e7': ('pawn', True), 'd7': ('pawn', True), 'f8': ('bishop', True), 'g8': ('knight', True), 'c4': ('bishop', False), 'e1': ('king', False)}
-    #pos0 = {parse_square(sq): value for sq, value in poslist.iteritems()}
-    from .chess_play import Game
-    from .chess_rules import Position
-    pos = Position(position=pos0)
-    #pos = Position(position=pos0, white_moves=False)
-    print pos.get_position()
-    game = Game(pos)
-    #game.move('exf7')
-    #game.move('Rh8')
-    evaluator = SimpleEvaluator()
-    engine = EvalEngine(evaluator, 3)
-    engine.set_game(game)
-    print engine.move()
 

@@ -7,15 +7,12 @@ class Figure(object):
     def pixar(self, y, x):
         ''' A couple of doubles representing darkness and opacity '''
         raise Exception("Subclasses must implement this method")
-        #return (0., 0.)
 
     def get_height(self):
         raise Exception("Subclasses must implement this method")
-        #return 0
 
     def get_width(self):
         raise Exception("Subclasses must implement this method")
-        #return 0
 
 class PixByPixFigure(Figure):
 
@@ -222,51 +219,18 @@ class ScaleConversor(Conversor):
             for j in xrange(self.width):
                 x0 = j * x_scale
                 x1 = x0 + x_scale
-                #print y0, y1, "ys"
-                #print x0, x1, "xs"
                 (darkness, opacity) = (0,0)
-                #print i, j
                 for (y, perc_y) in perc(y0, y1, figure.get_height() - 1):
                     for (x, perc_x) in perc(x0, x1, figure.get_width() - 1):
-                        #print x, y, perc_x, perc_y
                         try:
                             darkness += figure.pixar(y, x)[0] * perc_x * perc_y
                             opacity += figure.pixar(y, x)[1] * perc_x * perc_y
                         except Exception, e:
                             print y, x, figure.pixar(y, x)
                             raise e
-                #print "pre", darkness
                 darkness /= x_scale * y_scale
                 opacity /= x_scale * y_scale
-                #print (darkness, opacity), "pixel"
                 pix_line.append((darkness, opacity))
             pix_matrix.append(pix_line)
         return PixByPixFigure(pix_matrix)
 
-
-            
-if __name__ == '__main__':
-    pict = """\
-    ############             llllllllllll@@@@@@@@@@@@..........
-    ############             llllllllllll@@@@@@@@@@@@..........
-    ############             llllllllllll@@@@@@@@@@@@..........
-    ############             llllllllllll@@@@@@@@@@@@..........
-    ############             llllllllllll@@@@@@@@@@@@..........
-    ############             llllllllllll@@@@@@@@@@@@..........
-    ############             llllllllllll@@@@@@@@@@@@..........
-                #############llllllllllll@@@@@@@@@@@@..........
-                #############llllllllllll@@@@@@@@@@@@..........
-                #############llllllllllll@@@@@@@@@@@@..........
-                #############llllllllllll@@@@@@@@@@@@..........
-                #############llllllllllll@@@@@@@@@@@@..........
-                #############llllllllllll@@@@@@@@@@@@..........
-                #############llllllllllll@@@@@@@@@@@@.........."""
-    f = figure_from_string(pict)
-    sc = ScaleConversor(31, 29)
-    f2 = sc.convert(f)
-    f3 = ScaleConversor(14, 50).convert(f2)
-    print f
-    print f2
-    print f3
-
-        

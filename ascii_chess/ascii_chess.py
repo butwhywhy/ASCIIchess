@@ -1,3 +1,4 @@
+#TODO: change module name to ascii_board instead of ascii_chess
 from ascii_drawing import Canvas, Square, figure_from_string, GeneralColorConversor, ScaleConversor
 class ChessBoard(object):
     def __init__(self, side, white_darkness, black_darkness):
@@ -66,39 +67,6 @@ class ChessPiecesSet(object):
 
 from os import path
 from pkg_resources import resource_string
-#_pieces_path = os.path.abspath(
-                #os.path.join(os.path.dirname(__file__), 'ascii_chess_pieces'))
-#ascii_pieces = {p : figure_from_file(os.path.join(_pieces_path, p))
 ascii_pieces = {p : figure_from_string(resource_string('ascii_chess', path.join('ascii_chess_pieces', p)))
         for p in ('pawn', 'bishop', 'knight', 'rook', 'queen', 'king')}
-
-if __name__ == '__main__':
-    side = 10
-    board = ChessBoard(side, 0, 0.7)
-    print board
-    
-    for p in ascii_pieces:
-        pp = ascii_pieces[p]
-        print pp
-        print p, pp.get_height(), pp.get_width()
-    black_pieces = ChessPiecesSet(side, 1)
-    for p in black_pieces.pieces.values():
-        print p
-        print p.get_height(), p.get_width()
-    white_pieces = ChessPiecesSet(side, 0.2)
-    for p in white_pieces.pieces.values():
-        print p
-        print p.get_height(), p.get_width()
-
-    from .chess_rules import parse_square
-    board.add_piece(white_pieces['pawn'], *parse_square('d4'))
-    board.add_piece(white_pieces['pawn'], *parse_square('e4'))
-    board.add_piece(black_pieces['pawn'], *parse_square('d5'))
-    board.add_piece(black_pieces['pawn'], *parse_square('e5'))
-    print board
-
-    board.set_position(white_pieces, black_pieces)
-    print board
-
-
 
