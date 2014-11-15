@@ -46,11 +46,11 @@ CHARS_PER_PIXAR_DEFAULT = (1, 2)
 
 class Canvas(PixByPixFigure):
 
-    def __init__(self, height, width, ascii_scale=ASCI_DEFAULT):
+    def __init__(self, height, width, ascii_scale=ASCI_DEFAULT, chars_per_pixar=CHARS_PER_PIXAR_DEFAULT):
         pix_matrix = [[(0., 1) for j in xrange(width)] for i in xrange(height)]
         super(Canvas, self).__init__(pix_matrix)
         self.ascii_scale = ascii_scale
-        self.chars_per_pixar = CHARS_PER_PIXAR_DEFAULT
+        self.chars_per_pixar = chars_per_pixar
 
     def set_ascii_scale(self, ascii_scale):
         self.ascii_scale = ascii_scale
@@ -113,26 +113,46 @@ class Square(Figure):
     def get_width(self):
         return self.width
 
-def figure_from_string(string, ascii_scale=ASCI_DEFAULT, line_separator=None):
+def figure_from_string(string, ascii_scale=ASCI_DEFAULT, chars_per_pixar=CHARS_PER_PIXAR_DEFAULT, line_separator=None):
     if line_separator is None:
         from os import linesep
         line_separator = linesep
+    y_scale, x_scale = chars_per_pixar
+    chars_in_pixar = float(x_scale * y_scale)
     rows = string.split(linesep)
-    width = max(len(row) for row in rows)
-    height = len(rows)
-    if len(rows[height - 1]) == 0:
-        height -= 1
+
+    str_height = len(rows)
+    if len(rows[str_height - 1]) == 0:
+        str_height -= 1
+    height = str_height / y_scale
+    if str_height % y_scale:
+        height += 1
+
+    str_width = max(len(row) for row in rows)
+    width = str_width / x_scale
+    if str_width % x_scale:
+        width += 1
 
     pixars = [[(0., 1) for j in xrange(width)] for i in xrange(height)]
-    for i in xrange(height):
-        for j in xrange(min(width, len(rows[i]))):
-            pixars[i][j] = (ascii_to_darkness(rows[i][j], ascii_scale), 1)
+    for pix_y in xrange(height):
+        y_from = pix_y * y_scale
+        y_to = min(y_from + y_scale, str_height)
+        for pix_x in xrange(width):
+            dark_sum = 0
+            for i in xrange(y_from, y_to):
+                x_from = min(pix_x * x_scale, len(rows[i]))
+                x_to = min(x_from + x_scale, len(rows[i]))
+                for j in xrange(x_from, x_to):
+                    dark_sum += ascii_to_darkness(rows[i][j], ascii_scale)
+            pixars[pix_y][pix_x] = (dark_sum/chars_in_pixar, 1)
 
     return PixByPixFigure(pixars)
 
-def figure_from_file(file_path, ascii_scale=ASCI_DEFAULT, line_separator=None):
+def figure_from_file(file_path, ascii_scale=ASCI_DEFAULT, 
+        chars_per_pixar=CHARS_PER_PIXAR_DEFAULT, line_separator=None):
     with open(file_path) as f:
-        return figure_from_string(f.read(), ascii_scale, line_separator)
+        return figure_from_string(f.read(), ascii_scale,
+                chars_per_pixar, line_separator)
 
 
 class Conversor(object):
