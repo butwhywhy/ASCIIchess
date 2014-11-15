@@ -1,6 +1,7 @@
-#TODO: change module name to ascii_board instead of ascii_chess
 from ascii_drawing import Canvas, Square, figure_from_string, GeneralColorConversor, ScaleConversor
+
 class ChessBoard(object):
+
     def __init__(self, side, white_darkness, black_darkness):
         self.extra = 4
         self.side = side
