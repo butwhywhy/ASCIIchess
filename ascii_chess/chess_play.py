@@ -1,5 +1,5 @@
 from .chess_rules import Position
-from .ascii_chess import ChessBoard, ChessPiecesSet
+from .ascii_board import ChessBoard, ChessPiecesSet
 
 class Game(object):
 

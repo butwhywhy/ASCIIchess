@@ -1,5 +1,5 @@
 import ascii_chess
-from ascii_chess.ascii_chess import *
+from ascii_chess.ascii_board import *
 from ascii_chess.chess_rules import parse_square
 
 def test_is_functional():
