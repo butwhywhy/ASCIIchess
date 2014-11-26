@@ -388,8 +388,29 @@ class Position(object):
             return self.to_position.is_stalemate()
 
     def can_capture(self, is_black, square):
+        square_y, square_x = square
         for sq, (piece, _) in self.get_position(is_black=is_black).iteritems():
             (y, x) = sq
+            dy = abs(square_y - y)
+            dx = abs(square_x -x)
+            if piece == 'pawn':
+                if dy != 1 or dx != 1:
+                    continue
+            elif piece == 'bishop':
+                if dy != dx:
+                    continue
+            elif piece == 'knight':
+                if (dy != 1 or dx != 2) and (dy != 2 or dx != 1):
+                    continue
+            elif piece == 'rook':
+                if dy and dx:
+                    continue
+            elif piece == 'queen':
+                if (dy and dx) and (dy != dx):
+                    continue
+            elif piece == 'king':
+                if dy > 1 or dx > 1:
+                    continue
             moves_gen = moves_generator(piece, is_black, True, y)
             for g in moves_gen['gen']:
                 m = 0
