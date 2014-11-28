@@ -86,10 +86,6 @@ class Position(object):
 
 
         self.white_moves = white_moves
-        wk = self.get_position('king', False)
-        bk = self.get_position('king', True)
-        wr = self.get_position('rook', False)
-        br = self.get_position('rook', True)
 
         if white_can_castle_long is None:
             try:
