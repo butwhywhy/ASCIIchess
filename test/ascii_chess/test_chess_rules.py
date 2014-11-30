@@ -187,6 +187,21 @@ def test_king_2():
             }
     aux_check(pos_black, sol_black)
 
+def test_king_3():
+    p = [
+            ('king', False, 'e1'),
+            ('bishop', False, 'c3'),
+            ('king', True, 'e8'),
+            ('rook', True, 'h8')
+            ]
+    pos = Position(
+            position={parse_square(sq): (piece, color) for (piece, color, sq) in p},
+            white_moves=True
+            )
+    assert pos.black_can_castle_short
+    pos = pos.move('Bxh8')
+    assert not pos.black_can_castle_short
+
 def test_position_1():
     pos = Position()
     game = [
