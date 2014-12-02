@@ -384,6 +384,19 @@ class Position(object):
                     elif t_y == 7:
                         black_can_castle_short = False
 
+            if self.is_capture and self.captured == 'rook':
+                (y, x) = self.sq_to
+                if x == 0:
+                    if y == 0:
+                        white_can_castle_long = False
+                    elif y == 7:
+                        black_can_castle_long = False
+                elif x == 7:
+                    if y == 0:
+                        white_can_castle_short = False
+                    elif y == 7:
+                        black_can_castle_short = False
+
             self.to_position = Position(
                     position=to_pos, 
                     white_pieces=white_pieces,
