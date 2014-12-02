@@ -1,10 +1,14 @@
 
 ROWS = ('1', '2', '3', '4', '5', '6', '7', '8')
 COLS = ('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h')
-PIECES = {'K': 'king', 'Q': 'queen', 'R': 'rook', 'B': 'bishop',
-        'N': 'knight', '': 'pawn'}
 PIECES_NOTATION = {'king': 'K', 'queen': 'Q', 'rook': 'R', 'bishop': 'B',
         'knight': 'N', 'pawn': ''}
+KING = 0
+QUEEN = 1
+ROCK = 2
+BISHOP = 3
+KNIGHT = 4
+PAWN = 5
 
 def parse_square(square_notation):
     c = square_notation[0]
@@ -14,7 +18,14 @@ def parse_square(square_notation):
 def format_square(y, x):
     return COLS[x] + ROWS[y]
 
-INITIAL = {}
+def position_from_dict(pos):
+    position = [[None] * 8 for a in xrange(8)] 
+    for sq, val in pos.iteritems():
+        y, x = sq
+        position[y][x] = val
+    return position
+
+INITIAL = dict()
 INITIAL[parse_square('a1')] = ('rook', False)
 INITIAL[parse_square('b1')] = ('knight', False)
 INITIAL[parse_square('c1')] = ('bishop', False)
@@ -71,14 +82,37 @@ def moves_generator(piece, is_black, is_capture, y):
 
 class Position(object):
 
-    def __init__(self, position=None, white_moves=True, 
+    def __init__(self, position=None, white_pieces=None,
+            black_pieces=None, white_moves=True, 
             white_can_castle_long=None, white_can_castle_short=None, 
             black_can_castle_long=None, black_can_castle_short=None, 
             col_pawn_moved_2=None):
         if position is None:
-            position = INITIAL
+            position = position_from_dict(INITIAL)
+
+        if white_pieces is None or black_pieces is None:
+            white_pieces = dict()
+            black_pieces = dict()
+            for y in xrange(8):
+                for x in xrange(8):
+                    val = position[y][x]
+                    if val:
+                        sq = (y, x)
+                        (piece, is_black) = val
+                        if is_black:
+                            try:
+                                black_pieces[piece].append(sq)
+                            except KeyError:
+                                black_pieces[piece] = [sq]
+                        else:
+                            try:
+                                white_pieces[piece].append(sq)
+                            except KeyError:
+                                white_pieces[piece] = [sq]
 
         self.position = position
+        self.white_pieces = white_pieces
+        self.black_pieces = black_pieces
 
         self.has_ms = None
         self.mate = None
@@ -86,15 +120,11 @@ class Position(object):
 
 
         self.white_moves = white_moves
-        wk = self.get_position('king', False)
-        bk = self.get_position('king', True)
-        wr = self.get_position('rook', False)
-        br = self.get_position('rook', True)
 
         if white_can_castle_long is None:
             try:
-                self.white_can_castle_long = (self.position[(0,4)] == ('king', False)
-                        and self.position[(0,0)] == ('rook', False))
+                self.white_can_castle_long = (self.position[0][4] == ('king', False)
+                        and self.position[0][0] == ('rook', False))
             except KeyError:
                 self.white_can_castle_long = False
         else:
@@ -102,8 +132,8 @@ class Position(object):
 
         if white_can_castle_short is None:
             try:
-                self.white_can_castle_short = (self.position[(0,4)] == ('king', False)
-                        and self.position[(0,7)] == ('rook', False))
+                self.white_can_castle_short = (self.position[0][4] == ('king', False)
+                        and self.position[0][7] == ('rook', False))
             except KeyError:
                 self.white_can_castle_short = False
         else:
@@ -111,8 +141,8 @@ class Position(object):
 
         if black_can_castle_long is None:
             try:
-                self.black_can_castle_long = (self.position[(7,4)] == ('king', True)
-                        and self.position[(7,0)] == ('rook', True))
+                self.black_can_castle_long = (self.position[7][4] == ('king', True)
+                        and self.position[7][0] == ('rook', True))
             except KeyError:
                 self.black_can_castle_long = False
         else:
@@ -120,8 +150,8 @@ class Position(object):
 
         if black_can_castle_short is None:
             try:
-                self.black_can_castle_short = (self.position[(7,4)] == ('king', True)
-                        and self.position[(7,7)] == ('rook', True))
+                self.black_can_castle_short = (self.position[7][4] == ('king', True)
+                        and self.position[7][7] == ('rook', True))
             except KeyError:
                 self.black_can_castle_short = False
         else:
@@ -132,34 +162,29 @@ class Position(object):
         self.col_pawn_moved_2 = col_pawn_moved_2
 
     def get_square_content(self, sq):
-        try:
-            return self.position[sq]
-        except KeyError:
-            return None
-
-    def get_square_content_2(self, sq):
-        try:
-            return self.position[sq]
-        except KeyError:
-            return None
+        return self.position[sq[0]][sq[1]]
 
     def get_position(self, piece_type=None, is_black=None):
-        if piece_type is None and is_black is None:
-            return dict(self.position)
-        result = {}
-        for sq, value in self.position.iteritems():
-            piece, color = value
-            if (is_black is None or is_black == color) and (
-                    piece_type is None or piece_type == piece):
-                result[sq] = value
+        result = dict()
+        for y in xrange(8):
+            for x in xrange(8):
+                val = self.position[y][x]
+                if not val:
+                    continue
+                sq = (y, x)
+                piece, color = val
+                if (is_black is None or is_black == color) and (
+                        piece_type is None or piece_type == piece):
+                    result[sq] = val
         return result
 
     def moves(self, piece, is_black, y, x):
+        get_sq = self.get_square_content
         if piece == 'king':
             if (is_black and self.black_can_castle_short) or (
                     not is_black and self.white_can_castle_short):
                 yy = 7 if is_black else 0
-                if all(self.get_square_content((yy, xx)) is None for xx in (5, 6)): 
+                if all(get_sq((yy, xx)) is None for xx in (5, 6)): 
                     if not any(self.can_capture(not is_black, (yy, xx))
                             for xx in (4, 5, 6)):
                         yield self.Move(piece, self, (y, 4), 
@@ -167,7 +192,7 @@ class Position(object):
             if (is_black and self.black_can_castle_long) or (
                     not is_black and self.white_can_castle_long):
                 yy = 7 if is_black else 0
-                if all(self.get_square_content((yy, xx)) is None for xx in (1, 2, 3)): 
+                if all(get_sq((yy, xx)) is None for xx in (1, 2, 3)): 
                     if not any(self.can_capture(not is_black, (yy, xx))
                             for xx in (2, 3, 4)):
                         yield self.Move(piece, self, (y, 4), 
@@ -180,10 +205,9 @@ class Position(object):
             while m < moves_gen['limit']:
                 m += 1
                 (y_t, x_t) = (y_t + g[0], x_t + g[1])
-                if 0 <= y_t < 8 and 0 <= x_t < 8:
-                    t_content = self.get_square_content((y_t, x_t))
-                else:
+                if not (0 <= y_t < 8 and 0 <= x_t < 8):
                     break
+                t_content = self.position[y_t][x_t]
                 if not t_content:
                     if piece == 'pawn' and y_t in (0, 7):
                         for prom in ('bishop', 'knight', 'rook', 'queen'):
@@ -198,21 +222,21 @@ class Position(object):
                                     (y_t, x_t))
                         except IllegalMoveException:
                             pass
-                else:
-                    (t_piece, t_is_black) = t_content
-                    if t_is_black != is_black and piece != 'pawn':
-                        try:
-                            yield self.Move(piece, self, (y,x), 
-                                    (y_t, x_t), is_capture=True)
-                        except IllegalMoveException:
-                            pass
-                    break
+                    continue
+                (t_piece, t_is_black) = t_content
+                if t_is_black != is_black and piece != 'pawn':
+                    try:
+                        yield self.Move(piece, self, (y,x), 
+                                (y_t, x_t), is_capture=True)
+                    except IllegalMoveException:
+                        pass
+                break
         if piece == 'pawn':
             pawn_captures_gen = moves_generator(piece, is_black, True, y)
             for g in pawn_captures_gen['gen']:
                 (y_t, x_t) = (y + g[0], x + g[1])
                 if 0 <= y_t < 8 and 0 <= x_t < 8:
-                    t_content = self.get_square_content((y_t, x_t))
+                    t_content = get_sq((y_t, x_t))
                 else:
                     continue
                 if not t_content:
@@ -262,31 +286,64 @@ class Position(object):
             self.proccess()
 
         def proccess(self):
-            self.changes = {self.sq_from: None, 
-                    self.sq_to: ((self.promoted if self.promoted else self.main_piece, self.is_black))}
+            w_p = self.position.white_pieces
+            b_p = self.position.black_pieces
+            white_pieces = {p: list(w_p[p]) for p in w_p}
+            black_pieces = {p: list(b_p[p]) for p in b_p}
+
             (t_y, t_x) = self.sq_to
-            if self.main_piece == 'pawn' and self.ap:
-                if t_y == 2:
-                    t_y = 3
-                elif t_y == 5:
-                    t_y = 4
-                self.changes[(t_y, t_x)] = None
+            (y, x) = self.sq_from
+
+            to_pos = list(map(list, self.position.position))
+            to_pos[y][x] = None
+            to_pos[t_y][t_x] = (self.promoted if self.promoted else self.main_piece, 
+                    self.is_black)
+            if self.is_black:
+                moving_pieces = black_pieces
+                not_moving_pieces = white_pieces
+            else:
+                moving_pieces = white_pieces
+                not_moving_pieces = black_pieces
+            sqs = moving_pieces[self.main_piece]
+            sqs.remove(self.sq_from)
+
+            if self.promoted:
+                if not sqs:
+                    del sqs
+                try:
+                    moving_pieces[self.promoted].append(self.sq_to)
+                except KeyError:
+                    moving_pieces[self.promoted] = [self.sq_to]
+            else:
+                sqs.append(self.sq_to)
+
+            self.captured = None
+            if self.is_capture:
+                if self.ap:
+                    if t_y == 2:
+                        t_y = 3
+                    elif t_y == 5:
+                        t_y = 4
+                    to_pos[t_y][t_x] = None
+                    not_moving_pieces['pawn'].remove((t_y, t_x))
+                    self.captured = 'pawn'
+                else:
+                    self.captured = self.position.get_square_content(self.sq_to)[0]
+                    not_moving_pieces[self.captured].remove(self.sq_to)
+                if not not_moving_pieces[self.captured]:
+                    del not_moving_pieces[self.captured]
             elif self.main_piece == 'king':
-                (y, x) = self.sq_from
                 if x == 4:
                     if t_x == 6:
-                        self.changes[(y, 7)] = None
-                        self.changes[(y, 5)] = ('rook', self.is_black)
+                        to_pos[y][7] = None
+                        to_pos[y][5] = ('rook', self.is_black)
+                        moving_pieces['rook'].remove((y, 7))
+                        moving_pieces['rook'].append((y, 5))
                     elif t_x == 2:
-                        self.changes[(y, 0)] = None
-                        self.changes[(y, 3)] = ('rook', self.is_black)
-
-            to_pos = self.position.get_position()
-            for sq, val in self.changes.iteritems():
-                if not val:
-                    del to_pos[sq]
-                else:
-                    to_pos[sq] = val
+                        to_pos[y][0] = None
+                        to_pos[y][3] = ('rook', self.is_black)
+                        moving_pieces['rook'].remove((y, 0))
+                        moving_pieces['rook'].append((y, 3))
 
             white_can_castle_short = self.position.white_can_castle_short
             white_can_castle_long = self.position.white_can_castle_long
@@ -294,7 +351,6 @@ class Position(object):
             black_can_castle_long = self.position.black_can_castle_long
             col_pawn_moved_2 = None
             if self.main_piece == 'king' or self.main_piece == 'rook':
-                (y, x) = self.sq_from
                 if x == 0:
                     if y == 0:
                         white_can_castle_long = False
@@ -313,19 +369,25 @@ class Position(object):
                         black_can_castle_long = False
                         black_can_castle_short = False
             elif self.main_piece == 'pawn':
-                (y, x) = self.sq_from
                 if abs(t_y - y) == 2:
                     col_pawn_moved_2 = COLS[x]
 
-            self.captured = None
-            if self.is_capture:
-                if self.ap:
-                    self.captured = 'pawn'
-                else:
-                    (self.captured, _) = self.position.get_square_content((t_y, t_x))
+            if self.is_capture and self.captured == 'rook':
+                if t_x == 0:
+                    if t_y == 0:
+                        white_can_castle_long = False
+                    elif t_y == 7:
+                        black_can_castle_long = False
+                elif t_x == 7:
+                    if t_y == 0:
+                        white_can_castle_short = False
+                    elif t_y == 7:
+                        black_can_castle_short = False
 
             self.to_position = Position(
                     position=to_pos, 
+                    white_pieces=white_pieces,
+                    black_pieces=black_pieces,
                     white_moves=self.is_black,
                     white_can_castle_long=white_can_castle_long, 
                     white_can_castle_short=white_can_castle_short,
@@ -376,7 +438,25 @@ class Position(object):
             return self.notation()
 
         def changes(self):
-            return self.changes
+            changes = {self.sq_from: None, 
+                    self.sq_to: ((self.promoted if self.promoted else self.main_piece, self.is_black))}
+            if self.is_capture:
+                if self.ap:
+                    if t_y == 2:
+                        t_y = 3
+                    elif t_y == 5:
+                        t_y = 4
+                    changes[(t_y, t_x)] = None
+            elif self.main_piece == 'king':
+                (y, x) = self.sq_from
+                if x == 4:
+                    if t_x == 6:
+                        changes[(y, 7)] = None
+                        changes[(y, 5)] = ('rook', self.is_black)
+                    elif t_x == 2:
+                        changes[(y, 0)] = None
+                        changes[(y, 3)] = ('rook', self.is_black)
+            return changes
 
         def to_position(self):
             return self.to_position
@@ -388,46 +468,52 @@ class Position(object):
             return self.to_position.is_stalemate()
 
     def can_capture(self, is_black, square):
+        get_sq = self.get_square_content
         square_y, square_x = square
-        for sq, (piece, _) in self.get_position(is_black=is_black).iteritems():
-            (y, x) = sq
-            dy = abs(square_y - y)
-            dx = abs(square_x -x)
-            if piece == 'pawn':
-                if dy != 1 or dx != 1:
-                    continue
-            elif piece == 'bishop':
-                if dy != dx:
-                    continue
-            elif piece == 'knight':
-                if (dy != 1 or dx != 2) and (dy != 2 or dx != 1):
-                    continue
-            elif piece == 'rook':
-                if dy and dx:
-                    continue
-            elif piece == 'queen':
-                if (dy and dx) and (dy != dx):
-                    continue
-            elif piece == 'king':
-                if dy > 1 or dx > 1:
-                    continue
-            moves_gen = moves_generator(piece, is_black, True, y)
-            for g in moves_gen['gen']:
-                m = 0
-                (y_t, x_t) = (y, x)
-                while m < moves_gen['limit']:
-                    m += 1
-                    (y_t, x_t) = (y_t + g[0], x_t + g[1])
-                    if 0 <= y_t < 8 and 0 <= x_t < 8:
-                        t_content = self.get_square_content((y_t, x_t))
-                    else:
-                        break
-                    if (y_t, x_t) == square:
-                        return True
-                    if t_content:
-                        break
+        moving_pieces = self.black_pieces if is_black else self.white_pieces
+        for piece, sqs in moving_pieces.iteritems():
+            for sq in sqs:
+                (y, x) = sq
+                dy = abs(square_y - y)
+                dx = abs(square_x -x)
+                if piece == 'pawn':
+                    if dy != 1 or dx != 1:
+                        continue
+                elif piece == 'bishop':
+                    if dy != dx:
+                        continue
+                elif piece == 'knight':
+                    if (dy != 1 or dx != 2) and (dy != 2 or dx != 1):
+                        continue
+                elif piece == 'rook':
+                    if dy and dx:
+                        continue
+                elif piece == 'queen':
+                    if (dy and dx) and (dy != dx):
+                        continue
+                elif piece == 'king':
+                    if dy > 1 or dx > 1:
+                        continue
+                moves_gen = moves_generator(piece, is_black, True, y)
+                for g in moves_gen['gen']:
+                    m = 0
+                    (y_t, x_t) = (y, x)
+                    while m < moves_gen['limit']:
+                        m += 1
+                        (y_t, x_t) = (y_t + g[0], x_t + g[1])
+                        if 0 <= y_t < 8 and 0 <= x_t < 8:
+                            try:
+                                t_content = self.position[y_t][x_t]
+                            except KeyError:
+                                t_content = None
+                        else:
+                            break
+                        if (y_t, x_t) == square:
+                            return True
+                        if t_content:
+                            break
         return False
-    
+
     def has_moves(self):
         if self.has_ms is None:
             aux = False
@@ -451,7 +537,7 @@ class Position(object):
         return self.stalemate
 
     def checks(self, is_black):
-        king_pos = self.get_position('king', not is_black).keys()[0]
+        king_pos = self.white_pieces['king'][0] if is_black else self.black_pieces['king'][0] 
         return self.can_capture(is_black, king_pos)
 
     def result(self):
@@ -465,10 +551,13 @@ class Position(object):
             return WHITE_WINS
 
     def all_moves(self):
-        for sq, (piece, is_black) in self.get_position(is_black=not self.white_moves).iteritems():
-            p_moves = self.moves(piece, is_black, *sq)
-            for move in p_moves:
-                yield move
+        is_black = not self.white_moves
+        moving_pieces = self.white_pieces if self.white_moves else self.black_pieces
+        for piece, sqs in moving_pieces.iteritems():
+            for sq in sqs:
+                p_moves = self.moves(piece, is_black, *sq)
+                for move in p_moves:
+                    yield move
 
     def move(self, move_notation):
         for mv in self.all_moves():

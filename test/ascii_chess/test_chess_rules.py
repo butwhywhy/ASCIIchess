@@ -25,7 +25,7 @@ def test_pawn_white():
             ('bishop', True, 'd8'),
             ]
     pos = Position(
-            position={parse_square(sq): (piece, color) for (piece, color, sq) in p},
+            position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
             col_pawn_moved_2=4
             )
     sol = {
@@ -54,7 +54,7 @@ def test_pawn_black():
             ('pawn', True, 'c2'),
             ]
     pos = Position(
-            position={parse_square(sq): (piece, color) for (piece, color, sq) in p},
+            position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
             white_moves=False,
             col_pawn_moved_2=7
             )
@@ -77,7 +77,7 @@ def test_knight():
             ('knight', True, 'c7'),
             ]
     pos_white = Position(
-            position={parse_square(sq): (piece, color) for (piece, color, sq) in p},
+            position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
             white_moves=True
             )
     sol_white = {
@@ -87,7 +87,7 @@ def test_knight():
     aux_check(pos_white, sol_white)
 
     pos_black = Position(
-            position={parse_square(sq): (piece, color) for (piece, color, sq) in p},
+            position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
             white_moves=False
             )
     sol_black = {
@@ -102,7 +102,7 @@ def test_king_1():
             ('pawn', True, 'a3')
             ]
     pos_white = Position(
-            position={parse_square(sq): (piece, color) for (piece, color, sq) in p},
+            position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
             white_moves=True
             )
     sol_white = {
@@ -111,7 +111,7 @@ def test_king_1():
     aux_check(pos_white, sol_white)
 
     pos_black = Position(
-            position={parse_square(sq): (piece, color) for (piece, color, sq) in p},
+            position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
             white_moves=False
             )
     sol_black = {
@@ -130,7 +130,7 @@ def test_king_2():
             ]
     p = p_base
     pos_white = Position(
-            position={parse_square(sq): (piece, color) for (piece, color, sq) in p},
+            position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
             white_moves=True
             )
     sol_white = {
@@ -139,7 +139,7 @@ def test_king_2():
     aux_check(pos_white, sol_white)
 
     pos_black = Position(
-            position={parse_square(sq): (piece, color) for (piece, color, sq) in p},
+            position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
             white_moves=False
             )
     sol_black = {
@@ -149,7 +149,7 @@ def test_king_2():
 
     p = p_base + [('bishop', False, 'f1'), ('bishop', False, 'b1')]
     pos_white = Position(
-            position={parse_square(sq): (piece, color) for (piece, color, sq) in p},
+            position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
             white_moves=True
             )
     sol_white = {
@@ -159,7 +159,7 @@ def test_king_2():
 
     p = p_base + [('rook', False, 'e2')]
     pos_black = Position(
-            position={parse_square(sq): (piece, color) for (piece, color, sq) in p},
+            position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
             white_moves=False
             )
     sol_black = {
@@ -169,7 +169,7 @@ def test_king_2():
 
     p = p_base + [('rook', False, 'f2'), ('rook', False, 'd2')]
     pos_black = Position(
-            position={parse_square(sq): (piece, color) for (piece, color, sq) in p},
+            position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
             white_moves=False
             )
     sol_black = {
@@ -179,13 +179,28 @@ def test_king_2():
 
     p = p_base + [('rook', True, 'f7'), ('rook', True, 'b7')]
     pos_black = Position(
-            position={parse_square(sq): (piece, color) for (piece, color, sq) in p},
+            position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
             white_moves=True
             )
     sol_black = {
             ('king', 'e1'): ('O-O-O', 'Ke1e2', 'Ke1d1', 'Ke1d2')
             }
     aux_check(pos_black, sol_black)
+
+def test_king_3():
+    p = [
+            ('king', False, 'e1'),
+            ('bishop', False, 'c3'),
+            ('king', True, 'e8'),
+            ('rook', True, 'h8')
+            ]
+    pos = Position(
+            position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
+            white_moves=True
+            )
+    assert pos.black_can_castle_short
+    pos = pos.move('Bxh8')
+    assert not pos.black_can_castle_short
 
 def test_position_1():
     pos = Position()
@@ -210,6 +225,4 @@ def test_position_1():
     pos = pos.move('Qxf2++')
     assert not list(pos.all_moves())
     assert pos.is_mate()
-
-
 
