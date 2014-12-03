@@ -122,38 +122,26 @@ class Position(object):
         self.white_moves = white_moves
 
         if white_can_castle_long is None:
-            try:
-                self.white_can_castle_long = (self.position[0][4] == (KING, False)
-                        and self.position[0][0] == (ROOK, False))
-            except KeyError:
-                self.white_can_castle_long = False
+            self.white_can_castle_long = (self.position[0][4] == (KING, False)
+                    and self.position[0][0] == (ROOK, False))
         else:
             self.white_can_castle_long = white_can_castle_long
 
         if white_can_castle_short is None:
-            try:
-                self.white_can_castle_short = (self.position[0][4] == (KING, False)
-                        and self.position[0][7] == (ROOK, False))
-            except KeyError:
-                self.white_can_castle_short = False
+            self.white_can_castle_short = (self.position[0][4] == (KING, False)
+                    and self.position[0][7] == (ROOK, False))
         else:
             self.white_can_castle_short = white_can_castle_short
 
         if black_can_castle_long is None:
-            try:
-                self.black_can_castle_long = (self.position[7][4] == (KING, True)
-                        and self.position[7][0] == (ROOK, True))
-            except KeyError:
-                self.black_can_castle_long = False
+            self.black_can_castle_long = (self.position[7][4] == (KING, True)
+                    and self.position[7][0] == (ROOK, True))
         else:
             self.black_can_castle_long = black_can_castle_long
 
         if black_can_castle_short is None:
-            try:
-                self.black_can_castle_short = (self.position[7][4] == (KING, True)
-                        and self.position[7][7] == (ROOK, True))
-            except KeyError:
-                self.black_can_castle_short = False
+            self.black_can_castle_short = (self.position[7][4] == (KING, True)
+                    and self.position[7][7] == (ROOK, True))
         else:
             self.black_can_castle_short = black_can_castle_short
 
@@ -517,10 +505,7 @@ class Position(object):
                         m += 1
                         (y_t, x_t) = (y_t + g[0], x_t + g[1])
                         if 0 <= y_t < 8 and 0 <= x_t < 8:
-                            try:
-                                t_content = self.position[y_t][x_t]
-                            except KeyError:
-                                t_content = None
+                            t_content = self.position[y_t][x_t]
                         else:
                             break
                         if (y_t, x_t) == square:
