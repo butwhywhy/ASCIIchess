@@ -66,8 +66,12 @@ class ChessPiecesSet(object):
     def __getitem__(self, piece_name):
         return self.pieces[piece_name]
 
+
+from .chess_rules import KING, QUEEN, ROOK, BISHOP, KNIGHT, PAWN
+PIECE_NAMES = {KING: 'king', QUEEN: 'queen', ROOK: 'rook', BISHOP: 'bishop',
+        KNIGHT: 'knight', PAWN: 'pawn'}
 from os import path
 from pkg_resources import resource_string
-ascii_pieces = {p : figure_from_string(resource_string('ascii_chess', path.join('ascii_chess_pieces', p)))
-        for p in ('pawn', 'bishop', 'knight', 'rook', 'queen', 'king')}
+ascii_pieces = {p : figure_from_string(resource_string('ascii_chess', path.join('ascii_chess_pieces', PIECE_NAMES[p])))
+        for p in (PAWN, BISHOP, KNIGHT, ROOK, QUEEN, KING)}
 

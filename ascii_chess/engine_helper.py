@@ -1,8 +1,9 @@
 from .chess_play import Engine
 from .chess_rules import WHITE_WINS, BLACK_WINS, DRAW
+from .chess_rules import KING, QUEEN, ROOK, BISHOP, KNIGHT, PAWN
 
-DEFAULT_VALUES = {'mate': 10000, 'queen': 9.5, 'rook': 5, 'bishop':3.5, 
-        'knight': 3, 'pawn': 1, 'draw': 0}
+DEFAULT_VALUES = {'mate': 10000, QUEEN: 9.5, ROOK: 5, BISHOP:3.5, 
+        KNIGHT: 3, PAWN: 1, 'draw': 0}
 
 class Evaluator(object):
 
@@ -27,7 +28,7 @@ class Evaluator(object):
 def get_material(position, is_black, values=DEFAULT_VALUES):
     material = 0
     for (p, _) in position.get_position(is_black=is_black).values():
-        if p != 'king':
+        if p != KING:
             material += DEFAULT_VALUES[p]
     return material
 
@@ -44,7 +45,7 @@ class SimpleEvaluator(Evaluator):
             return DEFAULT_VALUES['draw']
         val = pre_value
         if move.promoted:
-            val += sign * (DEFAULT_VALUES[move.promoted] - DEFAULT_VALUES['pawn'])
+            val += sign * (DEFAULT_VALUES[move.promoted] - DEFAULT_VALUES[PAWN])
         if move.is_capture:
             val += sign * DEFAULT_VALUES[move.captured]
         return val
@@ -52,7 +53,7 @@ class SimpleEvaluator(Evaluator):
 
 class EvalEngine(Engine):
     
-    def __init__(self, evaluator, max_depth=3):
+    def __init__(self, evaluator, max_depth=4):
         self.evaluator = evaluator
         self.max_depth = max_depth
 

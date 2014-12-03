@@ -21,10 +21,10 @@ def test_is_functional():
         print p
         print p.get_height(), p.get_width()
 
-    board.add_piece(white_pieces['pawn'], *parse_square('d4'))
-    board.add_piece(white_pieces['pawn'], *parse_square('e4'))
-    board.add_piece(black_pieces['pawn'], *parse_square('d5'))
-    board.add_piece(black_pieces['pawn'], *parse_square('e5'))
+    board.add_piece(white_pieces[PAWN], *parse_square('d4'))
+    board.add_piece(white_pieces[PAWN], *parse_square('e4'))
+    board.add_piece(black_pieces[PAWN], *parse_square('d5'))
+    board.add_piece(black_pieces[PAWN], *parse_square('e5'))
     print board
 
     board.set_position(white_pieces, black_pieces)

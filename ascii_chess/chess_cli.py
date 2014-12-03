@@ -24,7 +24,7 @@ def play():
     gaming = GamingEngine(engine=simple_engine)
 
     ## To test from a particular position
-    # poslist = {'e8': ('king', True), 'e6': ('pawn', False), 'f7': ('pawn', True), 'e7': ('pawn', True), 'd7': ('pawn', True), 'f8': ('bishop', True), 'g8': ('knight', True), 'c4': ('bishop', False), 'e1': ('king', False)}
+    # poslist = {'e8': (KING, True), 'e6': (PAWN, False), 'f7': (PAWN, True), 'e7': (PAWN, True), 'd7': (PAWN, True), 'f8': (BISHOP, True), 'g8': (KNIGHT, True), 'c4': (BISHOP, False), 'e1': (KING, False)}
     # from .chess_rules import parse_square, Position
     # pos0 = {parse_square(sq): value for sq, value in poslist.iteritems()}
     # gaming = GamingEngine(engine=simple_engine, init_pos=Position(pos0))

@@ -9,49 +9,49 @@ def aux_check(position, solution):
 
 def test_pawn_white():
     p = [
-            ('king', False, 'a1'), 
-            ('pawn', False, 'a2'), 
-            ('pawn', False, 'h4'), 
-            ('pawn', False, 'c7'), 
-            ('pawn', False, 'd5'), 
-            ('pawn', False, 'f2'), 
-            ('king', True, 'a8'), 
-            ('pawn', True, 'g5'),
-            ('pawn', True, 'e5'), # black moved e7-e5
-            ('pawn', True, 'a7'),
-            ('pawn', True, 'c6'),
-            ('pawn', True, 'd6'),
-            ('pawn', True, 'f3'),
-            ('bishop', True, 'd8'),
+            (KING, False, 'a1'), 
+            (PAWN, False, 'a2'), 
+            (PAWN, False, 'h4'), 
+            (PAWN, False, 'c7'), 
+            (PAWN, False, 'd5'), 
+            (PAWN, False, 'f2'), 
+            (KING, True, 'a8'), 
+            (PAWN, True, 'g5'),
+            (PAWN, True, 'e5'), # black moved e7-e5
+            (PAWN, True, 'a7'),
+            (PAWN, True, 'c6'),
+            (PAWN, True, 'd6'),
+            (PAWN, True, 'f3'),
+            (BISHOP, True, 'd8'),
             ]
     pos = Position(
             position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
             col_pawn_moved_2=4
             )
     sol = {
-            ('pawn', 'a2'): ('a3', 'a4'),
-            ('pawn', 'h4'): ('h5', 'hxg5'),
-            ('pawn', 'c7'): ('c8=Q++', 'c8=R+', 'c8=B', 'c8=N', 
+            (PAWN, 'a2'): ('a3', 'a4'),
+            (PAWN, 'h4'): ('h5', 'hxg5'),
+            (PAWN, 'c7'): ('c8=Q++', 'c8=R+', 'c8=B', 'c8=N', 
                 'cxd8=Q+', 'cxd8=R+', 'cxd8=B', 'cxd8=N'),
-            ('pawn', 'd5'): ('dxe6', 'dxc6'),
-            ('pawn', 'f2'): (),
+            (PAWN, 'd5'): ('dxe6', 'dxc6'),
+            (PAWN, 'f2'): (),
             }
     aux_check(pos, sol)
 
 def test_pawn_black():
     p = [
-            ('king', False, 'a1'), 
-            ('pawn', False, 'a2'), 
-            ('pawn', False, 'h4'), # white just moved h4
-            ('pawn', False, 'c7'), 
-            ('pawn', False, 'f5'), 
-            ('bishop', False, 'h1'), 
-            ('king', True, 'a8'), 
-            ('pawn', True, 'g4'),
-            ('pawn', True, 'e7'), 
-            ('pawn', True, 'f6'),
-            ('pawn', True, 'f3'),
-            ('pawn', True, 'c2'),
+            (KING, False, 'a1'), 
+            (PAWN, False, 'a2'), 
+            (PAWN, False, 'h4'), # white just moved h4
+            (PAWN, False, 'c7'), 
+            (PAWN, False, 'f5'), 
+            (BISHOP, False, 'h1'), 
+            (KING, True, 'a8'), 
+            (PAWN, True, 'g4'),
+            (PAWN, True, 'e7'), 
+            (PAWN, True, 'f6'),
+            (PAWN, True, 'f3'),
+            (PAWN, True, 'c2'),
             ]
     pos = Position(
             position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
@@ -59,29 +59,29 @@ def test_pawn_black():
             col_pawn_moved_2=7
             )
     sol = {
-            ('pawn', 'g4'): ('g3', 'gxh3'),
-            ('pawn', 'e7'): ('e6', 'e5'),
-            ('pawn', 'f6'): (),
-            ('pawn', 'f3'): (), # cannot move because black king would be in check
-            ('pawn', 'c2'): ('c1=Q++', 'c1=R+', 'c1=B', 'c1=N'), 
+            (PAWN, 'g4'): ('g3', 'gxh3'),
+            (PAWN, 'e7'): ('e6', 'e5'),
+            (PAWN, 'f6'): (),
+            (PAWN, 'f3'): (), # cannot move because black king would be in check
+            (PAWN, 'c2'): ('c1=Q++', 'c1=R+', 'c1=B', 'c1=N'), 
             }
     aux_check(pos, sol)
 
 def test_knight():
     p = [
-            ('king', False, 'a1'),
-            ('knight', False, 'd5'),
-            ('pawn', False, 'd6'),
-            ('pawn', False, 'c6'),
-            ('king', True, 'a8'),
-            ('knight', True, 'c7'),
+            (KING, False, 'a1'),
+            (KNIGHT, False, 'd5'),
+            (PAWN, False, 'd6'),
+            (PAWN, False, 'c6'),
+            (KING, True, 'a8'),
+            (KNIGHT, True, 'c7'),
             ]
     pos_white = Position(
             position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
             white_moves=True
             )
     sol_white = {
-            ('knight', 'd5'): ('Nd5c3', 'Nd5b4', 'Nd5b6+', 'Nd5xc7+', 
+            (KNIGHT, 'd5'): ('Nd5c3', 'Nd5b4', 'Nd5b6+', 'Nd5xc7+', 
                 'Nd5e7', 'Nd5f6', 'Nd5f4', 'Nd5e3')
             }
     aux_check(pos_white, sol_white)
@@ -91,22 +91,22 @@ def test_knight():
             white_moves=False
             )
     sol_black = {
-            ('knight', 'c7'): ('Nc7b5', 'Nc7a6', 'Nc7e8', 'Nc7e6', 'Nc7xd5')
+            (KNIGHT, 'c7'): ('Nc7b5', 'Nc7a6', 'Nc7e8', 'Nc7e6', 'Nc7xd5')
             }
     aux_check(pos_black, sol_black)
 
 def test_king_1():
     p = [
-            ('king', False, 'c2'),
-            ('king', True, 'e1'),
-            ('pawn', True, 'a3')
+            (KING, False, 'c2'),
+            (KING, True, 'e1'),
+            (PAWN, True, 'a3')
             ]
     pos_white = Position(
             position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
             white_moves=True
             )
     sol_white = {
-            ('king', 'c2'): ('Kc2b1', 'Kc2b3', 'Kc2c1', 'Kc2c3', 'Kc2d3')
+            (KING, 'c2'): ('Kc2b1', 'Kc2b3', 'Kc2c1', 'Kc2c3', 'Kc2d3')
             }
     aux_check(pos_white, sol_white)
 
@@ -115,18 +115,18 @@ def test_king_1():
             white_moves=False
             )
     sol_black = {
-            ('king', 'e1'): ('Ke1e2', 'Ke1f1', 'Ke1f2')
+            (KING, 'e1'): ('Ke1e2', 'Ke1f1', 'Ke1f2')
             }
     aux_check(pos_black, sol_black)
 
 def test_king_2():
     p_base = [
-            ('king', False, 'e1'),
-            ('rook', False, 'h1'),
-            ('rook', False, 'a1'),
-            ('king', True, 'e8'),
-            ('rook', True, 'h8'),
-            ('rook', True, 'a8'),
+            (KING, False, 'e1'),
+            (ROOK, False, 'h1'),
+            (ROOK, False, 'a1'),
+            (KING, True, 'e8'),
+            (ROOK, True, 'h8'),
+            (ROOK, True, 'a8'),
             ]
     p = p_base
     pos_white = Position(
@@ -134,7 +134,7 @@ def test_king_2():
             white_moves=True
             )
     sol_white = {
-            ('king', 'e1'): ('O-O', 'O-O-O', 'Ke1f1', 'Ke1d1', 'Ke1f2', 'Ke1e2', 'Ke1d2')
+            (KING, 'e1'): ('O-O', 'O-O-O', 'Ke1f1', 'Ke1d1', 'Ke1f2', 'Ke1e2', 'Ke1d2')
             }
     aux_check(pos_white, sol_white)
 
@@ -143,56 +143,56 @@ def test_king_2():
             white_moves=False
             )
     sol_black = {
-            ('king', 'e8'): ('O-O', 'O-O-O', 'Ke8f8', 'Ke8d8', 'Ke8f7', 'Ke8e7', 'Ke8d7')
+            (KING, 'e8'): ('O-O', 'O-O-O', 'Ke8f8', 'Ke8d8', 'Ke8f7', 'Ke8e7', 'Ke8d7')
             }
     aux_check(pos_black, sol_black)
 
-    p = p_base + [('bishop', False, 'f1'), ('bishop', False, 'b1')]
+    p = p_base + [(BISHOP, False, 'f1'), (BISHOP, False, 'b1')]
     pos_white = Position(
             position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
             white_moves=True
             )
     sol_white = {
-            ('king', 'e1'): ('Ke1d1', 'Ke1f2', 'Ke1e2', 'Ke1d2')
+            (KING, 'e1'): ('Ke1d1', 'Ke1f2', 'Ke1e2', 'Ke1d2')
             }
     aux_check(pos_white, sol_white)
 
-    p = p_base + [('rook', False, 'e2')]
+    p = p_base + [(ROOK, False, 'e2')]
     pos_black = Position(
             position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
             white_moves=False
             )
     sol_black = {
-            ('king', 'e8'): ('Ke8f8', 'Ke8d8', 'Ke8f7', 'Ke8d7')
+            (KING, 'e8'): ('Ke8f8', 'Ke8d8', 'Ke8f7', 'Ke8d7')
             }
     aux_check(pos_black, sol_black)
 
-    p = p_base + [('rook', False, 'f2'), ('rook', False, 'd2')]
+    p = p_base + [(ROOK, False, 'f2'), (ROOK, False, 'd2')]
     pos_black = Position(
             position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
             white_moves=False
             )
     sol_black = {
-            ('king', 'e8'): ('Ke8e7',)
+            (KING, 'e8'): ('Ke8e7',)
             }
     aux_check(pos_black, sol_black)
 
-    p = p_base + [('rook', True, 'f7'), ('rook', True, 'b7')]
+    p = p_base + [(ROOK, True, 'f7'), (ROOK, True, 'b7')]
     pos_black = Position(
             position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
             white_moves=True
             )
     sol_black = {
-            ('king', 'e1'): ('O-O-O', 'Ke1e2', 'Ke1d1', 'Ke1d2')
+            (KING, 'e1'): ('O-O-O', 'Ke1e2', 'Ke1d1', 'Ke1d2')
             }
     aux_check(pos_black, sol_black)
 
 def test_king_3():
     p = [
-            ('king', False, 'e1'),
-            ('bishop', False, 'c3'),
-            ('king', True, 'e8'),
-            ('rook', True, 'h8')
+            (KING, False, 'e1'),
+            (BISHOP, False, 'c3'),
+            (KING, True, 'e8'),
+            (ROOK, True, 'h8')
             ]
     pos = Position(
             position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
