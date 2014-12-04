@@ -266,81 +266,78 @@ class Position(object):
                 sq_to, is_capture=False, promoted=None, ap=False):
             self.main_piece = main_piece
             self.position = position
-            self.is_black = not (position.white_moves)
+            is_black = not (position.white_moves)
+            self.is_black = is_black
             self.sq_from = sq_from
             self.sq_to = sq_to
             self.is_capture = is_capture
             self.promoted = promoted
             self.ap = ap
 
-            self.process()
-
-        def process(self):
-            w_p = self.position.white_pieces
-            b_p = self.position.black_pieces
+            w_p = position.white_pieces
+            b_p = position.black_pieces
             white_pieces = [list(sqs) if sqs else None for sqs in w_p]
             black_pieces = [list(sqs) if sqs else None for sqs in b_p]
 
-            (t_y, t_x) = self.sq_to
-            (y, x) = self.sq_from
+            (t_y, t_x) = sq_to
+            (y, x) = sq_from
 
-            to_pos = list(map(list, self.position.position))
+            to_pos = list(map(list, position.position))
             to_pos[y][x] = None
-            to_pos[t_y][t_x] = (self.promoted if self.promoted else self.main_piece, 
-                    self.is_black)
-            if self.is_black:
+            to_pos[t_y][t_x] = (promoted if promoted else main_piece, is_black)
+            if is_black:
                 moving_pieces = black_pieces
                 not_moving_pieces = white_pieces
             else:
                 moving_pieces = white_pieces
                 not_moving_pieces = black_pieces
-            sqs = moving_pieces[self.main_piece]
-            sqs.remove(self.sq_from)
+            sqs = moving_pieces[main_piece]
+            sqs.remove(sq_from)
 
-            if self.promoted:
+            if promoted:
                 if not sqs:
-                    moving_pieces[self.main_piece] = None
+                    moving_pieces[main_piece] = None
                 try:
-                    moving_pieces[self.promoted].append(self.sq_to)
+                    moving_pieces[promoted].append(sq_to)
                 except AttributeError:
-                    moving_pieces[self.promoted] = [self.sq_to]
+                    moving_pieces[promoted] = [sq_to]
             else:
-                sqs.append(self.sq_to)
+                sqs.append(sq_to)
 
-            self.captured = None
-            if self.is_capture:
-                if self.ap:
+            captured = None
+            if is_capture:
+                if ap:
                     if t_y == 2:
                         t_y = 3
                     elif t_y == 5:
                         t_y = 4
                     to_pos[t_y][t_x] = None
                     not_moving_pieces[PAWN].remove((t_y, t_x))
-                    self.captured = PAWN
+                    captured = PAWN
                 else:
-                    self.captured = self.position.get_square_content(self.sq_to)[0]
-                    not_moving_pieces[self.captured].remove(self.sq_to)
-                if not not_moving_pieces[self.captured]:
-                    not_moving_pieces[self.captured] = None
-            elif self.main_piece == KING:
+                    captured = position.get_square_content(sq_to)[0]
+                    not_moving_pieces[captured].remove(sq_to)
+                if not not_moving_pieces[captured]:
+                    not_moving_pieces[captured] = None
+            elif main_piece == KING:
                 if x == 4:
                     if t_x == 6:
                         to_pos[y][7] = None
-                        to_pos[y][5] = (ROOK, self.is_black)
+                        to_pos[y][5] = (ROOK, is_black)
                         moving_pieces[ROOK].remove((y, 7))
                         moving_pieces[ROOK].append((y, 5))
                     elif t_x == 2:
                         to_pos[y][0] = None
-                        to_pos[y][3] = (ROOK, self.is_black)
+                        to_pos[y][3] = (ROOK, is_black)
                         moving_pieces[ROOK].remove((y, 0))
                         moving_pieces[ROOK].append((y, 3))
 
-            white_can_castle_short = self.position.white_can_castle_short
-            white_can_castle_long = self.position.white_can_castle_long
-            black_can_castle_short = self.position.black_can_castle_short
-            black_can_castle_long = self.position.black_can_castle_long
+            white_can_castle_short = position.white_can_castle_short
+            white_can_castle_long = position.white_can_castle_long
+            black_can_castle_short = position.black_can_castle_short
+            black_can_castle_long = position.black_can_castle_long
             col_pawn_moved_2 = None
-            if self.main_piece == KING or self.main_piece == ROOK:
+            if main_piece == KING or main_piece == ROOK:
                 if x == 0:
                     if y == 0:
                         white_can_castle_long = False
@@ -358,11 +355,11 @@ class Position(object):
                     elif y == 7:
                         black_can_castle_long = False
                         black_can_castle_short = False
-            elif self.main_piece == PAWN:
+            elif main_piece == PAWN:
                 if abs(t_y - y) == 2:
                     col_pawn_moved_2 = COLS[x]
 
-            if self.is_capture and self.captured == ROOK:
+            if is_capture and captured == ROOK:
                 if t_x == 0:
                     if t_y == 0:
                         white_can_castle_long = False
@@ -374,8 +371,8 @@ class Position(object):
                     elif t_y == 7:
                         black_can_castle_short = False
 
-            if self.is_capture and self.captured == ROOK:
-                (y, x) = self.sq_to
+            if is_capture and captured == ROOK:
+                (y, x) = sq_to
                 if x == 0:
                     if y == 0:
                         white_can_castle_long = False
@@ -387,17 +384,19 @@ class Position(object):
                     elif y == 7:
                         black_can_castle_short = False
 
+            self.captured = captured
+
             self.to_position = Position(
                     position=to_pos, 
                     white_pieces=white_pieces,
                     black_pieces=black_pieces,
-                    white_moves=self.is_black,
+                    white_moves=is_black,
                     white_can_castle_long=white_can_castle_long, 
                     white_can_castle_short=white_can_castle_short,
                     black_can_castle_long=black_can_castle_long,
                     black_can_castle_short=black_can_castle_short,
                     col_pawn_moved_2=col_pawn_moved_2)
-            if self.to_position.checks(not self.is_black):
+            if self.to_position.checks(not is_black):
                 raise IllegalMoveException('In check')
 
         def notation(self):
