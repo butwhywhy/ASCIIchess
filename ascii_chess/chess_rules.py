@@ -187,9 +187,10 @@ class Position(object):
                                 (y, 2))
             
         moves_gen = moves_generator(piece, is_black, False, y)
+        sq = (y, x)
         for g in moves_gen['gen']:
             m = 0
-            (y_t, x_t) = (y, x)
+            (y_t, x_t) = sq
             limit = moves_gen['limit']
             while m < limit:
                 m += 1
@@ -201,13 +202,13 @@ class Position(object):
                     if piece == PAWN and y_t in (0, 7):
                         for prom in (BISHOP, KNIGHT, ROOK, QUEEN):
                             try:
-                                yield self.Move(piece, self, (y,x), 
+                                yield self.Move(piece, self, sq, 
                                         (y_t, x_t), promoted=prom)
                             except IllegalMoveException:
                                 break
                     else:
                         try:
-                            yield self.Move(piece, self, (y,x), 
+                            yield self.Move(piece, self, sq, 
                                     (y_t, x_t))
                         except IllegalMoveException:
                             pass
@@ -215,7 +216,7 @@ class Position(object):
                 (t_piece, t_is_black) = t_content
                 if t_is_black != is_black and piece != PAWN:
                     try:
-                        yield self.Move(piece, self, (y,x), 
+                        yield self.Move(piece, self, sq, 
                                 (y_t, x_t), is_capture=True)
                     except IllegalMoveException:
                         pass
@@ -233,7 +234,7 @@ class Position(object):
                         if (is_black and y_t == 2) or (
                                 not is_black and y_t == 5):
                             try:
-                                yield self.Move(piece, self, (y,x), 
+                                yield self.Move(piece, self, sq, 
                                         (y_t, x_t), 
                                         is_capture=True, ap=True)
                             except IllegalMoveException:
@@ -245,14 +246,14 @@ class Position(object):
                             for prom in (BISHOP, KNIGHT, ROOK, QUEEN):
                                 try:
                                     yield self.Move(piece, self, 
-                                            (y,x), 
+                                            sq, 
                                             (y_t, x_t), 
                                             is_capture=True, promoted=prom)
                                 except IllegalMoveException:
                                     break
                         else:
                             try:
-                                yield self.Move(piece, self, (y,x), 
+                                yield self.Move(piece, self, sq, 
                                         (y_t, x_t), is_capture=True)
                             except IllegalMoveException:
                                 pass
@@ -567,10 +568,6 @@ class Position(object):
 
     def checks(self, is_black):
         king_pos = self.white_pieces[KING][0] if is_black else self.black_pieces[KING][0] 
-        #print ''
-        #print king_pos
-        #print self.position
-        #print self.white_pieces
         return self.can_capture(is_black, king_pos)
 
     def result(self):
