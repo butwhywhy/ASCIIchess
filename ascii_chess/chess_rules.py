@@ -190,7 +190,8 @@ class Position(object):
         for g in moves_gen['gen']:
             m = 0
             (y_t, x_t) = (y, x)
-            while m < moves_gen['limit']:
+            limit = moves_gen['limit']
+            while m < limit:
                 m += 1
                 (y_t, x_t) = (y_t + g[0], x_t + g[1])
                 if not (0 <= y_t < 8 and 0 <= x_t < 8):
@@ -475,10 +476,14 @@ class Position(object):
         for piece, sqs in enumerate(moving_pieces):
             if not sqs:
                 continue
+
             for sq in sqs:
                 (y, x) = sq
-                dy = abs(square_y - y)
-                dx = abs(square_x -x)
+                ddy = square_y - y
+                ddx = square_x - x
+                dy = abs(ddy)
+                dx = abs(ddx)
+
                 if piece == PAWN:
                     if dy != 1 or dx != 1:
                         continue
@@ -497,13 +502,37 @@ class Position(object):
                 elif piece == KING:
                     if dy > 1 or dx > 1:
                         continue
+
                 moves_gen = moves_generator(piece, is_black, True, y)
+                limit = moves_gen['limit']
+
                 for g in moves_gen['gen']:
+                    g_y, g_x = g
+                    if limit > 1:
+                        if ddy > 0:
+                            if not g_y > 0:
+                                continue
+                        elif ddy < 0:
+                            if not g_y < 0:
+                                continue
+                        else:
+                            if not g_y == 0:
+                                continue
+                        if ddx > 0:
+                            if not g_x > 0:
+                                continue
+                        elif ddx < 0:
+                            if not g_x < 0:
+                                continue
+                        else:
+                            if not g_x == 0:
+                                continue
+
                     m = 0
                     (y_t, x_t) = (y, x)
-                    while m < moves_gen['limit']:
+                    while m < limit:
                         m += 1
-                        (y_t, x_t) = (y_t + g[0], x_t + g[1])
+                        (y_t, x_t) = (y_t + g_y, x_t + g_x)
                         if 0 <= y_t < 8 and 0 <= x_t < 8:
                             t_content = self.position[y_t][x_t]
                         else:
