@@ -82,7 +82,7 @@ class EvalEngine(Engine):
         for m in pre_pos.all_moves():
             if m.is_mate():
                 return [-DEFAULT_VALUES['mate'] if m.is_black 
-                        else DEFAULT_VALUES['mate']]
+                        else DEFAULT_VALUES['mate'], m.notation()]
             ms.append(m)
         for m in ms:
             value = self.evaluator.eval(pre_pos, pre_value, m)
