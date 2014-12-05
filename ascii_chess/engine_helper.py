@@ -59,6 +59,14 @@ class EvalEngine(Engine):
 
     def move(self):
         pos = self.game._current_position()
+        only = None
+        for m in pos.all_moves():
+            if only:
+                only = None
+                break
+            only = m
+        if only:
+            return only.notation()
         analysis_result = self.analyse(pos)
         print analysis_result
         if len(analysis_result) > 1:
@@ -70,7 +78,13 @@ class EvalEngine(Engine):
             return [pre_value]
 
         moves_rank = []
+        ms = []
         for m in pre_pos.all_moves():
+            if m.is_mate():
+                return [-DEFAULT_VALUES['mate'] if m.is_black 
+                        else DEFAULT_VALUES['mate']]
+            ms.append(m)
+        for m in ms:
             value = self.evaluator.eval(pre_pos, pre_value, m)
             an = self._analyse(m.to_position, value, depth + 1)
             an.append(m.notation())
