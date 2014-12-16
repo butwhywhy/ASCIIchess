@@ -166,28 +166,18 @@ class Node(object):
     def explore_rank(self):
         node = self
         best_path = [node]
-        def parent_diff(value):
-            def fun(parent):
-                return abs(value - parent[0].value)
-            return fun
-        def filtered(depth):
-            right_depth = depth - 1
-            def fun(parent):
-                return parent[0].min_depth == right_depth
-            return fun
         while not node.is_root:
-            filtered_parents = filter(filtered(node.min_depth), node.parents)
-            if not filtered_parents:
-                print 'DEPTHS DONT MATCH'
-                print node.parents
-            (node, _) = max(filtered_parents, key=parent_diff(node.value))
-            if node in best_path:
-                print ''
-                print ''
-                print best_path
-                print node
-                print node.best_parent
-                raise Exception('Unexpected recursion')
+            candidate_diff = None
+            node_value = node.value
+            candidate_depth = node.min_depth - 1
+            for (p, p_not) in node.parents:
+                if candidate_depth == p.min_depth:
+                    parent_diff = abs(node_value - p.value)
+                    if candidate_diff is None or candidate_diff < parent_diff:
+                        candidate = p
+                        candidate_diff = parent_diff
+            node = candidate
+            assert not node in best_path
             best_path.append(node)
         node = best_path.pop()
         pre_value = node.value
