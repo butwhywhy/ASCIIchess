@@ -79,6 +79,9 @@ def moves_generator(piece, is_black, is_capture, y):
                 return {'gen': ((-1, 1), (-1, -1)), 'limit': 1}
     raise Exception('Unknown piece ' + repr(piece))
 
+def _inmutable(pieces):
+    return tuple(frozenset(sqs) if sqs else None for sqs in pieces)
+
 
 class Position(object):
 
@@ -148,6 +151,36 @@ class Position(object):
         if col_pawn_moved_2 in COLS:
             col_pawn_moved_2 = COLS.index(col_pawn_moved_2) # column 'a', 'b', ....
         self.col_pawn_moved_2 = col_pawn_moved_2
+
+    def __repr__(self):
+        if self.white_moves:
+            white_pre = 'white (moves): '
+            black_pre = 'black: '
+        else:
+            white_pre = 'white: '
+            black_pre = 'black (moves): '
+        return white_pre + repr(self.white_pieces) + '; ' + black_pre + repr(self.black_pieces)
+
+    def __eq__(self, other):
+        if self.white_moves != other.white_moves:
+            return False
+        if self.position != other.position:
+            return False
+        if self.col_pawn_moved_2 != other.col_pawn_moved_2:
+            return False
+        if (self.white_can_castle_long != other.white_can_castle_long
+                or self.white_can_castle_short != other.white_can_castle_short
+                or self.black_can_castle_long != other.black_can_castle_long
+                or self.black_can_castle_short != other.black_can_castle_short):
+            return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash((_inmutable(self.white_pieces), 
+            _inmutable(self.black_pieces)))
 
     def get_square_content(self, sq):
         return self.position[sq[0]][sq[1]]
