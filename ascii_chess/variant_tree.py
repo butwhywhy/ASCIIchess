@@ -221,3 +221,37 @@ class Node(object):
     def get_value(self):
         return self.value
 
+from .chess_play import Engine
+
+class TreeEngine(Engine):
+
+    def __init__(self, evaluator, steps=5, max_cycles=200):
+        self.evaluator = evaluator
+        self.steps = steps
+        self.max_cycles = max_cycles
+
+    def set_game(self, game):
+        self.game = game
+
+    def start(self, pipe):
+        pos = self.game._current_position()
+        tree = Tree(pos, self.evaluator)
+        tree.analyse_step(self.steps)
+        for i in xrange(self.max_cycles):
+            if pipe.poll() or abs(tree.root.value) > 999:
+                break
+            tree.analyse_step(self.steps)
+        pipe.send(tree.best_variant())
+
+    def move(self):
+        pos = self.game._current_position()
+        tree = Tree(pos, self.evaluator)
+        tree.analyse_step(self.steps)
+        for i in xrange(self.max_cycles):
+            if abs(tree.root.value) > 999:
+                break
+            tree.analyse_step(self.steps)
+        best_variant = tree.best_variant()
+        move =  best_variant[0][0]
+
+        return move

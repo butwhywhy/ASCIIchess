@@ -32,7 +32,10 @@ class Engine(object):
         self.game = game
 
     def move(self):
-        raise  Exception('Must be implemented by subclasses')
+        raise Exception('Must be implemented by subclasses')
+
+    def start(self, pipe):
+        raise Exception('Must be implemented by subclasses')
     
 class RandomEngine(Engine):
 
@@ -61,6 +64,9 @@ class GamingEngine(object):
         if move is not None:
             self.game.move(move)
         return move
+
+    def start(self, pipe):
+        self.engine.start(pipe)
 
     def user_move(self, move):
         self.game.move(move)
