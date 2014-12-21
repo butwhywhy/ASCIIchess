@@ -9,11 +9,25 @@ class Tree(object):
 
     def best_variant(self):
         variant = []
-        best_move = self.root.best
-        while best_move:
-            variant.append(best_move[1])
-            best_move = best_move[0].best
+        considered = set()
+        best_node = self.root
+        while best_node.best:
+            variant.append(best_node.best[1])
+            best_node = best_node.best[0]
+            if best_node in considered:
+                return variant, self.root.value
+            considered.add(best_node)
         return variant, self.root.value
+
+    def _best_node(self):
+        considered = set()
+        best_node = self.root
+        while best_node.best:
+            best_node = best_node.best[0]
+            if best_node in considered:
+                return None
+            considered.add(best_node)
+        return best_node
 
     def analyse_step(self, steps=10):
         #print ''
@@ -28,6 +42,11 @@ class Tree(object):
             new_nodes = node.explore_children(self.evaluator, self.evaluated)
             self.frontier.extend(new_nodes)
             i += 1
+        if abs(self.root.value) < 1000:
+            node = self._best_node()
+            if node:
+                new_nodes = node.explore_children(self.evaluator, self.evaluated)
+                self.frontier.extend(new_nodes)
 
     def __repr__(self):
         result = repr(self.root.position)
@@ -205,8 +224,11 @@ class Node(object):
                     best = n, n_notation
                     best_value = n.value
             self.best = best
-            self.value = best_value
-            changed = True
+            if best_value != self.value:
+                self.value = best_value
+                changed = True
+            else:
+                changed = False
         else:
             if self.is_better(node.value, self.value):
                 self.value = node.value
@@ -225,10 +247,12 @@ from .chess_play import Engine
 
 class TreeEngine(Engine):
 
-    def __init__(self, evaluator, steps=5, max_cycles=200):
+    def __init__(self, evaluator, steps=3, max_cycles=200, min_cycles=100, min_best_depth=6):
         self.evaluator = evaluator
         self.steps = steps
         self.max_cycles = max_cycles
+        self.min_cycles = min_cycles
+        self.min_best_depth = min_best_depth
 
     def set_game(self, game):
         self.game = game
@@ -237,10 +261,17 @@ class TreeEngine(Engine):
         pos = self.game._current_position()
         tree = Tree(pos, self.evaluator)
         tree.analyse_step(self.steps)
-        for i in xrange(self.max_cycles):
+        i = 0
+        while True:
             if pipe.poll() or abs(tree.root.value) > 999:
                 break
+            if i > self.max_cycles:
+                break
+            if (i > self.min_cycles
+                    and len(tree.best_variant()[0]) >= self.min_best_depth):
+                break
             tree.analyse_step(self.steps)
+            i += 1
         pipe.send(tree.best_variant())
 
     def move(self):
