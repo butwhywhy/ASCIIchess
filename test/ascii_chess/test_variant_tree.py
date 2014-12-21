@@ -2,9 +2,9 @@ import ascii_chess
 from ascii_chess.variant_tree import *
 from ascii_chess.chess_rules import KING, QUEEN, ROOK, BISHOP, KNIGHT, PAWN
 from ascii_chess.chess_rules import parse_square, position_from_dict, Position
-from ascii_chess.engine_helper import SimpleEvaluator
+from ascii_chess.engine_helper import DynamicsEvaluator
 
-EVALUATOR = SimpleEvaluator()
+EVALUATOR = DynamicsEvaluator()
 def test_find_mate():
     pos0 = {parse_square('b8'): (KING, True), parse_square('a6'): (KING, False), parse_square('a5'): (ROOK, False)}
     pos = Position(position=position_from_dict(pos0))
@@ -25,7 +25,7 @@ def test_find_mate():
         if best_variant[1] > 999:
             assert best_variant[0][0] == 'Ra5c5'
             return
-        if i > 20:
+        if i > 30:
             assert False
 
 def test_avoid_mate():
@@ -76,12 +76,18 @@ def test_material():
             raise e
         best_variant = tree.best_variant()
         print i, best_variant
-        if best_variant[0][0] == 'exf7+' and len(best_variant[0]) > 4:
+        if best_variant[0][0] == 'exf7+' and len(best_variant[0]) > 5:
             return
         if i > 10:
             assert False
 
 if __name__ == '__main__':
-    test_find_mate()
-    test_avoid_mate()
-    test_material()
+    import statprof
+    statprof.start()
+    try:
+        test_find_mate()
+        test_avoid_mate()
+        test_material()
+    finally:
+        statprof.stop()
+        statprof.display()

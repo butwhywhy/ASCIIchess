@@ -6,7 +6,7 @@ from ascii_chess.chess_play import Game
 
 def check_best_move(pos, depth, expected):
     game = Game(pos)
-    evaluator = SimpleEvaluator()
+    evaluator = DynamicsEvaluator()
     engine = EvalEngine(evaluator, depth)
     engine.set_game(game)
     best = engine.move()
@@ -28,4 +28,17 @@ def test_material():
     pos0 = {parse_square(sq): value for sq, value in poslist.iteritems()}
     pos = Position(position=position_from_dict(pos0))
     check_best_move(pos, 3, 'exf7+')
+
+#if __name__ == '__main__':
+    #test_avoid_mate()
+if __name__ == '__main__':
+    import statprof
+    statprof.start()
+    try:
+        test_find_mate()
+        test_avoid_mate()
+        test_material()
+    finally:
+        statprof.stop()
+        statprof.display()
 
