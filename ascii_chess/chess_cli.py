@@ -19,10 +19,10 @@ def play():
             print '%s%s' %(white_place_holder if gaming.game.turn() == 'black' 
                     else black_place_holder, move)
 
-    from .engine_helper import SimpleEvaluator, EvalEngine
+    from .engine_helper import DynamicsEvaluator, EvalEngine
     from .variant_tree import TreeEngine
-    #simple_engine = EvalEngine(SimpleEvaluator())
-    simple_engine = TreeEngine(SimpleEvaluator())
+    #simple_engine = EvalEngine(DynamicsEvaluator())
+    simple_engine = TreeEngine(DynamicsEvaluator())
     gaming = GamingEngine(engine=simple_engine)
 
     ## To test from a particular position
@@ -53,6 +53,8 @@ def play():
                 print "Illegal move '%s'." % user_action
                 print "Try again or type 'help' to see your options."
                 continue
+            if gaming.game.result():
+                break
             print busy_msg
             thinking_interact(gaming, print_engine_move)
     print gaming.game.result()
