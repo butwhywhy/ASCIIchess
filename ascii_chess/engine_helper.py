@@ -98,3 +98,245 @@ class EvalEngine(Engine):
         pre_value = self.evaluator.eval0(pos)
         return self._analyse(pos, pre_value, 0)
 
+from .chess_rules import GEN_ROOK, GEN_BISHOP, GEN_KNIGHT
+
+class DynamicsEvaluator(Evaluator):
+
+    def complex_eval(self, position):
+        pos_array = position.position
+        value = 0.5 if position.white_moves else -0.5
+        value_unit = 0.001
+
+        white_king = position.white_pieces[KING][0]
+        black_king = position.black_pieces[KING][0]
+
+        (y, x) = white_king
+        for gen in GEN_ROOK + GEN_BISHOP:
+            y_t = y + gen[0]
+            x_t = x + gen[1]
+            if 0 <= y_t < 8 and 0 <= x_t < 8:
+                content = pos_array[y_t][x_t]
+                if content:
+                    (piece, is_black) = content
+                    if is_black:
+                        value += 4 * DEFAULT_VALUES[piece] * value_unit
+                else:
+                    value += value_unit
+                y_t += gen[0]
+                x_t += gen[1]
+
+        (y, x) = black_king
+        for gen in GEN_ROOK + GEN_BISHOP:
+            y_t = y + gen[0]
+            x_t = x + gen[1]
+            if 0 <= y_t < 8 and 0 <= x_t < 8:
+                content = pos_array[y_t][x_t]
+                if content:
+                    (piece, is_black) = content
+                    if not is_black:
+                        value -= 4 * DEFAULT_VALUES[piece] * value_unit
+                else:
+                    value -= value_unit
+                y_t += gen[0]
+                x_t += gen[1]
+
+        white_queens = position.white_pieces[QUEEN]
+        black_queens = position.black_pieces[QUEEN]
+        if white_queens:
+            value += DEFAULT_VALUES[QUEEN] * len(white_queens)
+            for (y, x) in white_queens:
+                for gen in GEN_ROOK + GEN_BISHOP:
+                    y_t = y + gen[0]
+                    x_t = x + gen[1]
+                    depth = 0
+                    while depth < 4 and 0 <= y_t < 8 and 0 <= x_t < 8:
+                        content = pos_array[y_t][x_t]
+                        if content:
+                            (piece, is_black) = content
+                            if is_black:
+                                if piece == KING:
+                                    value += (80 - 10 * depth) * value_unit
+                                else:
+                                    value += (4 - depth) * DEFAULT_VALUES[piece] * value_unit
+                            elif piece == PAWN:
+                                break
+                            depth += 1
+                        else:
+                            value += (4 - depth/2) * value_unit
+                        y_t += gen[0]
+                        x_t += gen[1]
+        if black_queens:
+            value -= DEFAULT_VALUES[QUEEN] * len(black_queens)
+            for (y, x) in black_queens:
+                for gen in GEN_ROOK + GEN_BISHOP:
+                    y_t = y + gen[0]
+                    x_t = x + gen[1]
+                    depth = 0
+                    while depth < 4 and 0 <= y_t < 8 and 0 <= x_t < 8:
+                        content = pos_array[y_t][x_t]
+                        if content:
+                            (piece, is_black) = content
+                            if not is_black:
+                                if piece == KING:
+                                    value -= (80 - 10 * depth) * value_unit
+                                else:
+                                    value -= (4 - depth) * DEFAULT_VALUES[piece] * value_unit
+                            elif piece == PAWN:
+                                break
+                            depth += 1
+                        else:
+                            value -= (4 - depth/2) * value_unit
+                        y_t += gen[0]
+                        x_t += gen[1]
+
+        white_rooks = position.white_pieces[ROOK]
+        black_rooks = position.black_pieces[ROOK]
+        if white_rooks:
+            value += DEFAULT_VALUES[ROOK] * len(white_rooks)
+            for (y, x) in white_rooks:
+                for gen in GEN_ROOK:
+                    y_t = y + gen[0]
+                    x_t = x + gen[1]
+                    depth = 0
+                    while depth < 8 and 0 <= y_t < 8 and 0 <= x_t < 8:
+                        content = pos_array[y_t][x_t]
+                        if content:
+                            (piece, is_black) = content
+                            if is_black:
+                                if piece == KING:
+                                    value += (80 - 10 * depth) * value_unit
+                                else:
+                                    value += (8 - depth) * DEFAULT_VALUES[piece] * value_unit
+                            elif piece == PAWN:
+                                break
+                            depth += 1
+                        else:
+                            value += (4 - depth/2) * value_unit
+                        y_t += gen[0]
+                        x_t += gen[1]
+                
+        if black_rooks:
+            value -= DEFAULT_VALUES[ROOK] * len(black_rooks)
+            for (y, x) in black_rooks:
+                for gen in GEN_ROOK:
+                    y_t = y + gen[0]
+                    x_t = x + gen[1]
+                    depth = 0
+                    while depth < 8 and 0 <= y_t < 8 and 0 <= x_t < 8:
+                        content = pos_array[y_t][x_t]
+                        if content:
+                            (piece, is_black) = content
+                            if not is_black:
+                                if piece == KING:
+                                    value -= (80 - 10 * depth) * value_unit
+                                else:
+                                    value -= (8 - depth) * DEFAULT_VALUES[piece] * value_unit
+                            elif piece == PAWN:
+                                break
+                            depth += 1
+                        else:
+                            value -= (4 - depth/2) * value_unit
+                        y_t += gen[0]
+                        x_t += gen[1]
+
+        white_bishops = position.white_pieces[BISHOP]
+        black_bishops = position.black_pieces[BISHOP]
+        if white_bishops:
+            value += DEFAULT_VALUES[BISHOP] * len(white_bishops)
+            for (y, x) in white_bishops:
+                for gen in GEN_BISHOP:
+                    y_t = y + gen[0]
+                    x_t = x + gen[1]
+                    depth = 0
+                    while depth < 3 and 0 <= y_t < 8 and 0 <= x_t < 8:
+                        content = pos_array[y_t][x_t]
+                        if content:
+                            (piece, is_black) = content
+                            if is_black:
+                                if piece == KING:
+                                    value += (60 - 20 * depth) * value_unit
+                                else:
+                                    value += (6 - 2 * depth) * DEFAULT_VALUES[piece] * value_unit
+                            elif piece == PAWN:
+                                break
+                            depth += 1
+                        else:
+                            value += (4 - depth) * value_unit
+                        y_t += gen[0]
+                        x_t += gen[1]
+        if black_bishops:
+            value -= DEFAULT_VALUES[BISHOP] * len(black_bishops)
+            for (y, x) in black_bishops:
+                for gen in GEN_BISHOP:
+                    y_t = y + gen[0]
+                    x_t = x + gen[1]
+                    depth = 0
+                    while depth < 3 and 0 <= y_t < 8 and 0 <= x_t < 8:
+                        content = pos_array[y_t][x_t]
+                        if content:
+                            (piece, is_black) = content
+                            if not is_black:
+                                if piece == KING:
+                                    value -= (60 - 20 * depth) * value_unit
+                                else:
+                                    value -= (6 - 2 * depth) * DEFAULT_VALUES[piece] * value_unit
+                            elif piece == PAWN:
+                                break
+                            depth += 1
+                        else:
+                            value -= (4 - depth) * value_unit
+                        y_t += gen[0]
+                        x_t += gen[1]
+
+        white_knights = position.white_pieces[KNIGHT]
+        black_knights = position.black_pieces[KNIGHT]
+        if white_knights:
+            value += DEFAULT_VALUES[KNIGHT] * len(white_knights)
+            for (y, x) in white_knights:
+                for gen in GEN_KNIGHT:
+                    y_t = y + gen[0]
+                    x_t = x + gen[1]
+                    if 0 <= y_t < 8 and 0 <= x_t < 8:
+                        content = pos_array[y_t][x_t]
+                        if content:
+                            (piece, is_black) = content
+                            if is_black:
+                                if piece == KING:
+                                    value += 100 * value_unit
+                                else:
+                                    value += 10 * DEFAULT_VALUES[piece] * value_unit
+                        else:
+                            value += 4 * value_unit
+        if black_knights:
+            value -= DEFAULT_VALUES[KNIGHT] * len(black_knights)
+            for (y, x) in black_knights:
+                for gen in GEN_KNIGHT:
+                    y_t = y + gen[0]
+                    x_t = x + gen[1]
+                    if 0 <= y_t < 8 and 0 <= x_t < 8:
+                        content = pos_array[y_t][x_t]
+                        if content:
+                            (piece, is_black) = content
+                            if not is_black:
+                                if piece == KING:
+                                    value -= 100 * value_unit
+                                else:
+                                    value -= 10 * DEFAULT_VALUES[piece] * value_unit
+                        else:
+                            value -= 4 * value_unit
+
+        white_pawns = position.white_pieces[PAWN]
+        black_pawns = position.black_pieces[PAWN]
+        if white_pawns:
+            value += DEFAULT_VALUES[PAWN] * len(white_pawns)
+        if black_pawns:
+            value -= DEFAULT_VALUES[PAWN] * len(black_pawns)
+        return value
+
+    def eval(self, pre_pos, pre_value, move):
+        sign = -1 if move.is_black else 1
+        if move.is_mate():
+            return sign * DEFAULT_VALUES['mate']
+        if move.is_stalemate():
+            return DEFAULT_VALUES['draw']
+        return self.complex_eval(move.to_position)
