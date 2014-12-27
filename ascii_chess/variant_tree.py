@@ -1,3 +1,6 @@
+from .chess_rules import KING, QUEEN, ROOK, BISHOP, KNIGHT, PAWN
+DEFAULT_VALUES = {'mate': 10000, QUEEN: 9.5, ROOK: 5, BISHOP:3.5, 
+        KNIGHT: 3, PAWN: 1, 'draw': 0}
 
 class Tree(object):
     def __init__(self, init_pos, evaluator):
@@ -7,21 +10,32 @@ class Tree(object):
         self.evaluated[init_pos] = self.root
         self.frontier = [self.root]
 
-    def best_variant(self):
+    def candidates(self, max_number):
+        result = self.root.children
+        def _get_value(c):
+            return c[0].get_value()
+        result.sort(key=_get_value, reverse=self.root.position.white_moves)
+        return result[: max_number]
+
+    def best_variant(self, candidate=None):
+        if not candidate:
+            candidate = self.root
         variant = []
         considered = set()
-        best_node = self.root
+        best_node = candidate
         while best_node.best:
             variant.append(best_node.best[1])
             best_node = best_node.best[0]
             if best_node in considered:
-                return variant, self.root.value
+                return variant, candidate.value
             considered.add(best_node)
-        return variant, self.root.value
+        return variant, candidate.value
 
-    def _best_node(self):
+    def _best_node(self, candidate=None):
+        if not candidate:
+            candidate = self.root
         considered = set()
-        best_node = self.root
+        best_node = candidate
         while best_node.best:
             best_node = best_node.best[0]
             if best_node in considered:
@@ -43,10 +57,13 @@ class Tree(object):
             self.frontier.extend(new_nodes)
             i += 1
         if abs(self.root.value) < 1000:
-            node = self._best_node()
-            if node:
-                new_nodes = node.explore_children(self.evaluator, self.evaluated)
-                self.frontier.extend(new_nodes)
+            candidates = self.candidates(3)
+            for c in candidates:
+                if abs(c[0].value) < 1000:
+                    node = self._best_node(c[0])
+                    if node:
+                        new_nodes = node.explore_children(self.evaluator, self.evaluated)
+                        self.frontier.extend(new_nodes)
 
     def __repr__(self):
         result = repr(self.root.position)
@@ -62,12 +79,18 @@ class Node(object):
     def __init__(self, move, value, parent, init_pos=None):
         self.id = Node.id_gen
         Node.id_gen += 1
+        self.extra = 0
         if not move:
             self.position = init_pos
             self.is_root = True
         else:
             self.position = move.to_position
             self.is_root = False
+            if move.is_capture:
+                self.extra = DEFAULT_VALUES[move.captured]
+            if self.position.is_check():
+                self.extra += 2
+
         assert value is not None
         if value is None:
             raise Exception('None value')
@@ -207,11 +230,12 @@ class Node(object):
             node_value = node.value
             depth += 1
             try:
-                rank += abs(node_value - pre_value) + depth * 0.5
+                rank += abs(node_value - pre_value) + depth * 0.3
             except Exception, e:
                 print node_value, pre_value
                 print node
                 raise e
+        rank -= 1.5 * self.extra
         return rank
 
     def update_value(self, node_notation):
@@ -247,7 +271,7 @@ from .chess_play import Engine
 
 class TreeEngine(Engine):
 
-    def __init__(self, evaluator, steps=3, max_cycles=200, min_cycles=100, min_best_depth=6):
+    def __init__(self, evaluator, steps=3, max_cycles=180, min_cycles=100, min_best_depth=8):
         self.evaluator = evaluator
         self.steps = steps
         self.max_cycles = max_cycles
@@ -267,11 +291,21 @@ class TreeEngine(Engine):
                 break
             if i > self.max_cycles:
                 break
-            if (i > self.min_cycles
-                    and len(tree.best_variant()[0]) >= self.min_best_depth):
-                break
+            if i > self.min_cycles:
+                best_node = tree._best_node()
+                if best_node:
+                    if best_node.extra:
+                        if len(tree.best_variant()[0]) >= 2 * self.min_best_depth:
+                            break
+                    else:
+                        if len(tree.best_variant()[0]) >= self.min_best_depth:
+                            break
             tree.analyse_step(self.steps)
             i += 1
+        candidates = tree.candidates(3)
+        for c in candidates:
+            print c[1], tree.best_variant(c[0])
+            
         pipe.send(tree.best_variant())
 
     def move(self):
