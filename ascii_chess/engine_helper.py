@@ -329,8 +329,76 @@ class DynamicsEvaluator(Evaluator):
         black_pawns = position.black_pieces[PAWN]
         if white_pawns:
             value += DEFAULT_VALUES[PAWN] * len(white_pawns)
+            for (y, x) in white_pawns:
+                is_passed = True
+                for (o_y, o_x) in black_pawns:
+                    if abs(o_x - x) <= 1 and o_y > y:
+                        is_passed = False
+                        break
+                if is_passed:
+                    value += 0.2
+                    if y >= 3:
+                        if y == 3:
+                            value += 0.05
+                        elif y == 4:
+                            value += 0.15
+                        elif y == 5:
+                            value += 0.65
+                        elif y == 6:
+                            value += 1.9
+                else:
+                    if y == 4:
+                        value += 0.05
+                    elif y == 5:
+                        value += 0.15
+                for gen in ((1, 1), (1, -1)):
+                    y_t = y + gen[0]
+                    x_t = x + gen[1]
+                    if 0 <= y_t < 8 and 0 <= x_t < 8:
+                        content = pos_array[y_t][x_t]
+                        if content:
+                            (piece, is_black) = content
+                            if is_black:
+                                if piece == KING:
+                                    value += 60 * value_unit
+                                else:
+                                    value += 12 * DEFAULT_VALUES[piece] * value_unit
         if black_pawns:
             value -= DEFAULT_VALUES[PAWN] * len(black_pawns)
+            for (y, x) in black_pawns:
+                is_passed = True
+                for (o_y, o_x) in white_pawns:
+                    if abs(o_x - x) <= 1 and o_y < y:
+                        is_passed = False
+                        break
+                if is_passed:
+                    value -= 0.2
+                    if y <= 4:
+                        if y == 4:
+                            value -= 0.05
+                        elif y == 3:
+                            value -= 0.15
+                        elif y == 2:
+                            value -= 0.65
+                        elif y == 1:
+                            value -= 1.9
+                else:
+                    if y == 3:
+                        value -= 0.05
+                    elif y == 2:
+                        value -= 0.15
+                for gen in ((-1, 1), (-1, -1)):
+                    y_t = y + gen[0]
+                    x_t = x + gen[1]
+                    if 0 <= y_t < 8 and 0 <= x_t < 8:
+                        content = pos_array[y_t][x_t]
+                        if content:
+                            (piece, is_black) = content
+                            if not is_black:
+                                if piece == KING:
+                                    value -= 60 * value_unit
+                                else:
+                                    value -= 12 * DEFAULT_VALUES[piece] * value_unit
         return value
 
     def eval(self, pre_pos, pre_value, move):
