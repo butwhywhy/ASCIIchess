@@ -331,10 +331,11 @@ class DynamicsEvaluator(Evaluator):
             value += DEFAULT_VALUES[PAWN] * len(white_pawns)
             for (y, x) in white_pawns:
                 is_passed = True
-                for (o_y, o_x) in black_pawns:
-                    if abs(o_x - x) <= 1 and o_y > y:
-                        is_passed = False
-                        break
+                if black_pawns:
+                    for (o_y, o_x) in black_pawns:
+                        if abs(o_x - x) <= 1 and o_y > y:
+                            is_passed = False
+                            break
                 if is_passed:
                     value += 0.2
                     if y >= 3:
@@ -367,10 +368,11 @@ class DynamicsEvaluator(Evaluator):
             value -= DEFAULT_VALUES[PAWN] * len(black_pawns)
             for (y, x) in black_pawns:
                 is_passed = True
-                for (o_y, o_x) in white_pawns:
-                    if abs(o_x - x) <= 1 and o_y < y:
-                        is_passed = False
-                        break
+                if white_pawns:
+                    for (o_y, o_x) in white_pawns:
+                        if abs(o_x - x) <= 1 and o_y < y:
+                            is_passed = False
+                            break
                 if is_passed:
                     value -= 0.2
                     if y <= 4:
