@@ -226,3 +226,75 @@ def test_position_1():
     assert not list(pos.all_moves())
     assert pos.is_mate()
 
+def test_result_1():
+    p = [
+            (KING, False, 'a1'), 
+            (KING, True, 'a3'), 
+            (ROOK, True, 'f1'),
+            ]
+    pos = Position(
+            position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
+            white_moves=True
+            )
+    assert pos.result() == BLACK_WINS
+
+def test_result_2():
+    p = [
+            (KING, False, 'c1'), 
+            (ROOK, False, 'a5'),
+            (KING, True, 'a1'), 
+            ]
+    pos = Position(
+            position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
+            white_moves=False
+            )
+    assert pos.result() == WHITE_WINS
+
+def test_result_3():
+    p = [
+            (KING, False, 'c1'), 
+            (ROOK, False, 'h2'),
+            (KING, True, 'a1'), 
+            ]
+    pos = Position(
+            position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
+            white_moves=False
+            )
+    assert pos.result() == DRAW
+
+def test_result_4():
+    p = [
+            (KING, False, 'c1'), 
+            (BISHOP, False, 'h2'),
+            (KING, True, 'a1'), 
+            ]
+    pos = Position(
+            position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
+            white_moves=False
+            )
+    assert pos.result() == DRAW
+
+def test_result_5():
+    p = [
+            (KING, False, 'c1'), 
+            (BISHOP, False, 'h2'),
+            (KNIGHT, False, 'h7'),
+            (KING, True, 'a1'), 
+            ]
+    pos = Position(
+            position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
+            white_moves=False
+            )
+    assert pos.result() is None
+
+def test_result_6():
+    p = [
+            (KING, False, 'c1'), 
+            (PAWN, False, 'h2'),
+            (KING, True, 'b5'), 
+            ]
+    pos = Position(
+            position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
+            white_moves=False
+            )
+    assert pos.result() is None

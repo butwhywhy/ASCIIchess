@@ -604,7 +604,31 @@ class Position(object):
 
     def result(self):
         if self.has_moves():
-            return None
+            if (self.white_pieces[QUEEN]
+                    or self.white_pieces[ROOK]
+                    or self.white_pieces[PAWN]
+                    or self.black_pieces[QUEEN]
+                    or self.black_pieces[ROOK]
+                    or self.black_pieces[PAWN]):
+                return None
+            n_pieces = 0
+            if self.white_pieces[BISHOP]:
+                n_pieces += len(self.white_pieces[BISHOP])
+            if n_pieces > 1:
+                return None
+            if self.white_pieces[KNIGHT]:
+                n_pieces += len(self.white_pieces[KNIGHT])
+            if n_pieces > 1:
+                return None
+            if self.black_pieces[BISHOP]:
+                n_pieces += len(self.black_pieces[BISHOP])
+            if n_pieces > 1:
+                return None
+            if self.black_pieces[KNIGHT]:
+                n_pieces += len(self.black_pieces[KNIGHT])
+            if n_pieces > 1:
+                return None
+            return DRAW
         if self.is_stalemate():
             return DRAW
         if self.is_mate():
