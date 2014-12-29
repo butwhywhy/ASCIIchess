@@ -89,7 +89,7 @@ class Position(object):
             black_pieces=None, white_moves=True, 
             white_can_castle_long=None, white_can_castle_short=None, 
             black_can_castle_long=None, black_can_castle_short=None, 
-            col_pawn_moved_2=None):
+            col_pawn_moved_2=None, moves_for_50=None):
         if position is None:
             position = position_from_dict(INITIAL)
 
@@ -151,6 +151,10 @@ class Position(object):
         if col_pawn_moved_2 in COLS:
             col_pawn_moved_2 = COLS.index(col_pawn_moved_2) # column 'a', 'b', ....
         self.col_pawn_moved_2 = col_pawn_moved_2
+        if moves_for_50:
+            self.moves_for_50 = moves_for_50
+        else:
+            self.moves_for_50 = 0
 
     def __repr__(self):
         if self.white_moves:
@@ -419,6 +423,11 @@ class Position(object):
 
             self.captured = captured
 
+            moves_for_50 = position.moves_for_50
+            if main_piece == PAWN or is_capture:
+                moves_for_50 = 0
+            else:
+                moves_for_50 += 1
             self.to_position = Position(
                     position=to_pos, 
                     white_pieces=white_pieces,
@@ -428,7 +437,8 @@ class Position(object):
                     white_can_castle_short=white_can_castle_short,
                     black_can_castle_long=black_can_castle_long,
                     black_can_castle_short=black_can_castle_short,
-                    col_pawn_moved_2=col_pawn_moved_2)
+                    col_pawn_moved_2=col_pawn_moved_2, 
+                    moves_for_50=moves_for_50)
             if self.to_position.checks(not is_black):
                 raise IllegalMoveException('In check')
 
@@ -604,6 +614,8 @@ class Position(object):
 
     def result(self):
         if self.has_moves():
+            if self.moves_for_50 >= 100:
+                return DRAW
             if (self.white_pieces[QUEEN]
                     or self.white_pieces[ROOK]
                     or self.white_pieces[PAWN]

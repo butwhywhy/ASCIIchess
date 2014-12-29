@@ -298,3 +298,33 @@ def test_result_6():
             white_moves=False
             )
     assert pos.result() is None
+
+def test_result_7():
+    p = [
+            (KING, True, 'e8'), 
+            (KING, False, 'e1'), 
+            (BISHOP, False, 'e5'), 
+            (BISHOP, True, 'e6'), 
+            ]
+    pos = Position(
+            position=position_from_dict({parse_square(sq): (piece, color) for (piece, color, sq) in p}),
+            white_moves=False
+            )
+    for i in xrange(99):
+        assert pos.result() is None
+        notation = None
+        for m in pos.all_moves():
+            if not m.is_capture and not m.to_position.result():
+                notation = m.notation()
+                break
+        assert notation, i
+        pos = pos.move(notation)
+    for m in pos.all_moves():
+        if not m.is_capture:
+            notation = m.notation()
+            break
+    assert notation
+    pos = pos.move(notation)
+    assert pos.result() == DRAW, pos.moves_for_50
+
+
