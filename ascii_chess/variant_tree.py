@@ -12,24 +12,20 @@ class Tree(object):
 
     def candidates(self, max_number):
         result = self.root.children
+        variant = {self.root}
         def _get_value(c):
-            return c[0].get_value()
+            return c[0]._get_value(variant)[0]
         result.sort(key=_get_value, reverse=self.root.position.white_moves)
         return result[: max_number]
 
     def best_variant(self, candidate=None):
         if not candidate:
             candidate = self.root
-        variant = []
-        considered = set()
-        best_node = candidate
-        while best_node.best:
-            variant.append(best_node.best[1])
-            best_node = best_node.best[0]
-            if best_node in considered:
-                return variant, candidate.value
-            considered.add(best_node)
-        return variant, candidate.value
+            variant = {}
+        else: 
+            variant = {self.root}
+        best_var = candidate._get_value(variant)
+        return best_var[1], best_var[0]
 
     def _best_node(self, candidate=None):
         if not candidate:
@@ -264,8 +260,24 @@ class Node(object):
             for parent, notation in self.parents:
                 parent.update_value((self, notation))
         
-    def get_value(self):
-        return self.value
+    def _get_value(self, variant):
+        if self in variant:
+            return (0, None)
+        if not self.children:
+            return (self.value, None)
+        next_variant = set(variant)
+        next_variant.add(self)
+        child_values = map(lambda ch: (ch[0]._get_value(next_variant), ch[1]), 
+                self.children)
+        if self.position.white_moves:
+            best_var = max(child_values, key=lambda x: x[0][0]) 
+        else:
+            best_var = min(child_values, key=lambda x: x[0][0]) 
+        result = (best_var[0][0], 
+            [best_var[1]] + best_var[0][1] if best_var[0][1] else [best_var[1]])
+        return result
+
+
 
 from .chess_play import Engine
 

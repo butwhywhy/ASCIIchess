@@ -81,6 +81,31 @@ def test_material():
         if i > 10:
             assert False
 
+def test_repetion_draw_evaluation():
+    poslist = {'a8': (KING, False),
+            'a6': (PAWN, False),
+            'c7': (KING, True)}
+    pos0 = {parse_square(sq): value for sq, value in poslist.iteritems()}
+    pos = Position(position=position_from_dict(pos0), white_moves=False)
+    tree = Tree(pos, EVALUATOR)
+    for i in xrange(10):
+        try:
+            tree.analyse_step(5)
+        except Exception, e:
+            print ''
+            print pos
+            try:
+                print tree
+            except:
+                pass
+            raise e
+        best_variant = tree.best_variant()
+        print i, best_variant
+        if best_variant[0][0] == 'Kc7c8' and best_variant[1] == 0:
+            return
+        if i > 5:
+            assert False
+
 if __name__ == '__main__':
     import statprof
     statprof.start()
