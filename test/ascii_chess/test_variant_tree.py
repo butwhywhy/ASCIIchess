@@ -106,6 +106,41 @@ def test_repetion_draw_evaluation():
         if i > 5:
             assert False
 
+def test_avoid_repetition():
+    pos0 = {parse_square('b8'): (KING, True), parse_square('a6'): (KING, False), parse_square('a5'): (ROOK, False)}
+    pos = Position(position=position_from_dict(pos0))
+    history = [pos]
+    pos = pos.move('Rc5')
+    history.append(pos)
+    pos = pos.move('Ka8')
+    history.append(pos)
+    pos = pos.move('Ra5')
+    history.append(pos)
+    pos = pos.move('Kb8')
+    history.append(pos)
+    tree = Tree(pos, EVALUATOR, history)
+    for i in xrange(100):
+        try:
+            tree.analyse_step(5)
+        except Exception, e:
+            print ''
+            print pos
+            try:
+                print tree
+            except:
+                pass
+            raise e
+        best_variant = tree.best_variant()
+        print i, best_variant
+        if best_variant[1] > 999:
+            assert False
+        if i > 10:
+            for ch in tree.root.children:
+                if ch[1] == 'Ra5c5':
+                    assert tree.best_variant(ch[0])[1] == 0
+                    return
+            assert False
+
 if __name__ == '__main__':
     import statprof
     statprof.start()
@@ -113,6 +148,8 @@ if __name__ == '__main__':
         test_find_mate()
         test_avoid_mate()
         test_material()
+        test_avoid_repetition()
+        test_repetion_draw_evaluation()
     finally:
         statprof.stop()
         statprof.display()

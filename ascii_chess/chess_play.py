@@ -1,4 +1,4 @@
-from .chess_rules import Position
+from .chess_rules import Position, DRAW
 from .ascii_board import ChessBoard, ChessPiecesSet
 
 class Game(object):
@@ -21,10 +21,15 @@ class Game(object):
         self.history.append((move_not, self._current_position().move(move_not)))
 
     def result(self):
+        if self._history().count(self._current_position()) > 2:
+            return DRAW
         return self._current_position().result()
 
     def turn(self):
         return 'white' if self._current_position().white_moves else 'black'
+
+    def _history(self):
+        return map(lambda x: x[1], self.history)
 
 class Engine(object):
 

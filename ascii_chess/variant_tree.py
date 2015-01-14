@@ -3,8 +3,11 @@ DEFAULT_VALUES = {'mate': 10000, QUEEN: 9.5, ROOK: 5, BISHOP:3.5,
         KNIGHT: 3, PAWN: 1, 'draw': 0}
 
 class Tree(object):
-    def __init__(self, init_pos, evaluator):
+    def __init__(self, init_pos, evaluator, history=None):
         self.root = Node(move=None, value=evaluator.eval0(init_pos), parent=None, init_pos=init_pos)
+        if history is None:
+            history = {}
+        self.history = set(history)
         self.evaluator = evaluator
         self.evaluated = dict()
         self.evaluated[init_pos] = self.root
@@ -14,18 +17,21 @@ class Tree(object):
         result = self.root.children
         variant = {self.root}
         def _get_value(c):
-            return c[0]._get_value(variant)[0]
+            return c[0]._get_value(variant, self.history)[0]
         result.sort(key=_get_value, reverse=self.root.position.white_moves)
         return result[: max_number]
 
     def best_variant(self, candidate=None):
         if not candidate:
-            candidate = self.root
-            variant = {}
-        else: 
-            variant = {self.root}
-        best_var = candidate._get_value(variant)
-        return best_var[1], best_var[0]
+            prepend = True
+            candidate, candidate_move = self.candidates(1)[0]
+        else:
+            prepend = False
+        variant = {self.root}
+        (best_value, best_var) = candidate._get_value(variant, self.history)
+        if prepend:
+            best_var = [candidate_move] + best_var if best_var else [candidate_move]
+        return best_var, best_value
 
     def _best_node(self, candidate=None):
         if not candidate:
@@ -260,14 +266,14 @@ class Node(object):
             for parent, notation in self.parents:
                 parent.update_value((self, notation))
         
-    def _get_value(self, variant):
-        if self in variant:
+    def _get_value(self, variant, history):
+        if self in variant or self.position in history:
             return (0, None)
         if not self.children:
             return (self.value, None)
         next_variant = set(variant)
         next_variant.add(self)
-        child_values = map(lambda ch: (ch[0]._get_value(next_variant), ch[1]), 
+        child_values = map(lambda ch: (ch[0]._get_value(next_variant, history), ch[1]), 
                 self.children)
         if self.position.white_moves:
             best_var = max(child_values, key=lambda x: x[0][0]) 
@@ -295,7 +301,7 @@ class TreeEngine(Engine):
 
     def start(self, pipe):
         pos = self.game._current_position()
-        tree = Tree(pos, self.evaluator)
+        tree = Tree(pos, self.evaluator, self.game._history())
         tree.analyse_step(self.steps)
         i = 0
         while True:
@@ -322,7 +328,7 @@ class TreeEngine(Engine):
 
     def move(self):
         pos = self.game._current_position()
-        tree = Tree(pos, self.evaluator)
+        tree = Tree(pos, self.evaluator, self.game._history())
         tree.analyse_step(self.steps)
         for i in xrange(self.max_cycles):
             if abs(tree.root.value) > 999:
