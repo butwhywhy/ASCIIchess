@@ -1,6 +1,16 @@
 import ascii_chess
 from ascii_chess.chess_rules import *
 
+def test_FEN():
+    FENtests = [
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            "3B2qr/k7/7K/8/QQQQ3q/PP4pp/5P2/8 b - d3 5 4",
+            "8/k7/7K/8/b2Q3q/PP4pp/5P2/8 w Kq h6 5 4",
+            ]
+    for t in FENtests:
+        pos = Position.fromFEN(t)
+        fen = pos.toFEN()
+        assert fen == t
 
 def aux_check(position, solution):
     for (p, sq), sol in solution.iteritems():

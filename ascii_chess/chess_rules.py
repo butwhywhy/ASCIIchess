@@ -9,6 +9,9 @@ ROWS = ('1', '2', '3', '4', '5', '6', '7', '8')
 COLS = ('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h')
 PIECES_NOTATION = {KING: 'K', QUEEN: 'Q', ROOK: 'R', BISHOP: 'B',
         KNIGHT: 'N', PAWN: ''}
+FEN_CONV = dict(PIECES_NOTATION)
+FEN_CONV[PAWN] = 'P'
+INVERSE_FEN_CONV = {FEN_CONV[p]: p for p in FEN_CONV}
 
 def parse_square(square_notation):
     c = square_notation[0]
@@ -85,11 +88,93 @@ def _inmutable(pieces):
 
 class Position(object):
 
+    @classmethod
+    def fromFEN(cls, FEN):
+        position = [8 * [None] for i in xrange(8)]
+        [FENpos, FENwho, FENcastle, FENpassant, FEN50, FENmoves] = FEN.split(' ')
+        for row, pieces in enumerate(FENpos.split('/')):
+            col = 0
+            for p in pieces:
+                if p.isdigit():
+                    n = int(p)
+                    col += n
+                else:
+                    position[7 - row][col] = (INVERSE_FEN_CONV[p.upper()],
+                            p.islower())
+                    col += 1
+                    
+        white_moves = FENwho == 'w'
+
+        white_can_castle_short = 'K' in FENcastle
+        white_can_castle_long = 'Q' in FENcastle
+        black_can_castle_short = 'k' in FENcastle
+        black_can_castle_long = 'q' in FENcastle
+
+        col_pawn_moved_2 = None if FENpassant == '-' else FENpassant[0]
+        
+        moves_for_50 = int(FEN50) if FEN50.isdigit() else None
+
+        fullmoves = int(FENmoves)
+
+        return cls(position=position, 
+                   white_moves=white_moves,
+                   white_can_castle_long=white_can_castle_long,
+                   white_can_castle_short=white_can_castle_short,
+                   black_can_castle_long=black_can_castle_long,
+                   black_can_castle_short=black_can_castle_short,
+                   col_pawn_moved_2=col_pawn_moved_2,
+                   moves_for_50=moves_for_50,
+                   fullmoves=fullmoves)
+
+    def toFEN(self):
+
+        def FENrow(row):
+            result = ''
+            count = 0
+            for sq in row:
+                if sq:
+                    if count > 0:
+                        result += str(count)
+                        count = 0
+                    p, is_black = sq
+                    result += FEN_CONV[p].lower() if is_black else FEN_CONV[p]
+                else:
+                    count += 1
+            if count:
+                result += str(count)
+            return result
+
+        FENpos = '/'.join(reversed(map(FENrow, self.position)))
+        FENwho = 'w' if self.white_moves else 'b'
+
+        FENcastle = ''
+        if self.white_can_castle_short:
+            FENcastle += 'K'
+        if self.white_can_castle_long:
+            FENcastle += 'Q'
+        if self.black_can_castle_short:
+            FENcastle += 'k'
+        if self.black_can_castle_long:
+            FENcastle += 'q'
+        if not FENcastle:
+            FENcastle = '-'
+
+        if self.col_pawn_moved_2 is not None:
+            FENpassant = format_square(5 if self.white_moves else 2,
+                    self.col_pawn_moved_2)
+        else:
+            FENpassant = '-'
+
+        FEN50 = str(self.moves_for_50)
+        FENmoves = str(self.fullmoves)
+
+        return ' '.join([FENpos, FENwho, FENcastle, FENpassant, FEN50, FENmoves])
+
     def __init__(self, position=None, white_pieces=None,
             black_pieces=None, white_moves=True, 
             white_can_castle_long=None, white_can_castle_short=None, 
             black_can_castle_long=None, black_can_castle_short=None, 
-            col_pawn_moved_2=None, moves_for_50=None):
+            col_pawn_moved_2=None, moves_for_50=0, fullmoves=1):
         if position is None:
             position = position_from_dict(INITIAL)
 
@@ -151,10 +236,8 @@ class Position(object):
         if col_pawn_moved_2 in COLS:
             col_pawn_moved_2 = COLS.index(col_pawn_moved_2) # column 'a', 'b', ....
         self.col_pawn_moved_2 = col_pawn_moved_2
-        if moves_for_50:
-            self.moves_for_50 = moves_for_50
-        else:
-            self.moves_for_50 = 0
+        self.moves_for_50 = moves_for_50
+        self.fullmoves = fullmoves
 
     def __repr__(self):
         if self.white_moves:
@@ -428,6 +511,9 @@ class Position(object):
                 moves_for_50 = 0
             else:
                 moves_for_50 += 1
+            fullmoves = position.fullmoves
+            if is_black:
+                fullmoves += 1
             self.to_position = Position(
                     position=to_pos, 
                     white_pieces=white_pieces,
@@ -438,7 +524,8 @@ class Position(object):
                     black_can_castle_long=black_can_castle_long,
                     black_can_castle_short=black_can_castle_short,
                     col_pawn_moved_2=col_pawn_moved_2, 
-                    moves_for_50=moves_for_50)
+                    moves_for_50=moves_for_50,
+                    fullmoves=fullmoves)
             if self.to_position.checks(not is_black):
                 raise IllegalMoveException('In check')
 
