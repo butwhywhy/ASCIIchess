@@ -756,7 +756,7 @@ class Position(object):
 
 WHITE_WINS = '1-0'
 BLACK_WINS = '0-1'
-DRAW = '0.5-0.5'
+DRAW = '1/2-1/2'
 
 class IllegalMoveException(Exception):
     pass
