@@ -19,5 +19,6 @@ setup(
                 'chess_cli = ascii_chess.chess_cli:play',
                 ]
             },
+        install_requires=['pgnparser'],
         )
 
