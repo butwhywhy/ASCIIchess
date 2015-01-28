@@ -289,12 +289,14 @@ from .chess_play import Engine
 
 class TreeEngine(Engine):
 
-    def __init__(self, evaluator, steps=3, max_cycles=180, min_cycles=100, min_best_depth=8):
+    def __init__(self, evaluator, steps=3, max_cycles=180, min_cycles=100, 
+            min_best_depth=8, print_analysis=False):
         self.evaluator = evaluator
         self.steps = steps
         self.max_cycles = max_cycles
         self.min_cycles = min_cycles
         self.min_best_depth = min_best_depth
+        self.print_analysis = print_analysis
 
     def set_game(self, game):
         self.game = game
@@ -320,9 +322,14 @@ class TreeEngine(Engine):
                             break
             tree.analyse_step(self.steps)
             i += 1
-        candidates = tree.candidates(3)
-        for c in candidates:
-            print c[1], tree.best_variant(c[0])
+        if self.print_analysis:
+            try:
+                n = int(self.print_analysis)
+            except:
+                n = 3
+            candidates = tree.candidates(n)
+            for c in candidates:
+                print c[1], tree.best_variant(c[0])
             
         pipe.send(tree.best_variant())
 

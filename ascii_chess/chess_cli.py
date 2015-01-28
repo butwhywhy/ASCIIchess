@@ -15,6 +15,7 @@ def play():
         - new
         - export
         - import
+        - set
         '''
     move_place_holder = ' ... '
     white_place_holder = ' ! '
@@ -43,8 +44,8 @@ def play():
 
     saved = True
     first_move = True
+
     def set_players():
-        first_move = False
         if gaming.game.turn() == 'white':
             wp = type(gaming.engine)
             bp = 'You'
@@ -53,6 +54,77 @@ def play():
             bp = type(gaming.engine)
         gaming.game.white_player = wp
         gaming.game.black_player = bp
+
+
+    class Options(object):
+        def __init__(self, level=3, human_only=False, size='m'):
+            self.level = level
+            self.human_only = human_only
+            self.size = size
+
+
+    def reset_graphics():
+        if options.size == 's':
+            side = 10
+        elif options.size == 'm':
+            side = 20
+        else:
+            side = 40
+        gaming.set_graphics(side=side)
+
+    def set_options():
+        options_help = '''You can set the following options:
+            - done                      Exit this menu
+            - level 0-7                 Engine level, increasing strength
+            - engine on/off             Switch on/off engine
+            - analysis on/off           Show or hide main analysed variants
+            - blind on/off              Blind chess: hide/show board
+            - board s/m/l               Board size small, medium or large
+        '''
+        print options_help
+        print "Current values: level %d, engine %s, analysis %s, blind %s, board %s" % (
+                options.level,
+                'off' if options.human_only else 'on',
+                'on' if simple_engine.print_analysis else 'off',
+                'on',
+                'large' if options.size.lower() == 'l' else (
+                    'small' if options.size.lower() == 's'
+                    else 'medium')
+                )
+
+        while True:
+            user_action = raw_input('set: ')
+            if user_action == 'done':
+                break
+            if user_action == 'engine on':
+                options.human_only = False
+            elif user_action == 'engine off':
+                options.human_only = True
+            elif user_action == 'analysis on':
+                simple_engine.print_analysis = 3
+            elif user_action == 'analysis off':
+                simple_engine.print_analysis = 0
+            elif user_action == 'blind on':
+                pass
+                #print 'Option not available yet'
+            elif user_action == 'blind off':
+                print 'Option not available yet'
+            else:
+                import re
+                mlevel = re.match('level ([0-7])$', user_action)
+                if mlevel:
+                    options.level = int(mlevel.groups()[0])
+                    continue
+                msize = re.match('board ([sSmMlL])', user_action)
+                if msize:
+                    options.size = msize.groups()[0].lower()
+                    reset_graphics()
+                    continue
+                print 'Option not recognized:', user_action
+                print options_help
+
+    options = Options()
+    reset_graphics()
 
     print gaming.draw()
 
@@ -87,8 +159,9 @@ def play():
                 saved = False
             if first_move:
                 set_players()
+                first_move = False
             print busy_msg
-            thinking_interact(gaming, print_engine_move)
+            thinking_interact(gaming, print_engine_move, options.level)
         elif user_action == 'back':
             gaming.back()
         elif user_action == 'export':
@@ -107,6 +180,9 @@ def play():
             saved = True
             first_move = True
             print gaming.draw()
+        elif user_action == 'set':
+            set_options()
+
         else:
             try:
                 gaming.user_move(user_action)
@@ -120,8 +196,10 @@ def play():
                 continue
             if first_move:
                 set_players()
-            print busy_msg
-            thinking_interact(gaming, print_engine_move)
+                first_move = False
+            if not options.human_only:
+                print busy_msg
+                thinking_interact(gaming, print_engine_move, options.level)
 
 def export_game(game):
     default_name = time.strftime('%Y%m%d%H%M%S') + '.png'
@@ -158,7 +236,7 @@ def import_game():
             print traceback.format_exc()
     return None
 
-def thinking_interact(gaming, print_engine_move):
+def thinking_interact(gaming, print_engine_move, level):
     def compute(pipe, gaming):
         gaming.start(pipe)
 
@@ -176,10 +254,29 @@ def thinking_interact(gaming, print_engine_move):
     p_cli = Process(target=listen_user, args=(sys.stdin.fileno(), pipe_cli1))
     p_engine.start()
     p_cli.start()
+
+    time_spent = 0
+    if level == 0:
+        move_seconds = 3
+    elif level == 1:
+        move_seconds = 7
+    elif level == 2:
+        move_seconds = 12
+    elif level == 3:
+        move_seconds = 20
+    elif level == 4:
+        move_seconds = 30
+    elif level == 5:
+        move_seconds = 60
+    elif level == 6:
+        move_seconds = 120
+    else:
+        move_seconds = 0
+
     while True:
         if pipe_comp2.poll():
             best_variant = pipe_comp2.recv()
-            print best_variant
+            #print best_variant
             move = best_variant[0][0]
 
             gaming.user_move(move)
@@ -187,9 +284,12 @@ def thinking_interact(gaming, print_engine_move):
             print_engine_move(move)
             p_cli.terminate()
             break
+        time.sleep(0.5)
+        time_spent += 0.5
         if pipe_cli2.poll():
             pipe_comp2.send(pipe_cli2.recv())
-        time.sleep(0.5)
+        if move_seconds and time_spent > move_seconds:
+            pipe_comp2.send('now')
 
 if __name__ == '__main__':
     play()
