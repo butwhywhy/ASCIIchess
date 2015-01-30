@@ -133,7 +133,8 @@ class GamingEngine(object):
         self.white_set = ChessPiecesSet(side, pieces_white)
         self.black_set = ChessPiecesSet(side, pieces_black)
 
-    def draw(self):
+    def draw(self, perspective = 'white'):
+        self.board.set_perspective(perspective)
         self.board.set_position(self.white_set, self.black_set, 
                 self.game.current_position())
         return repr(self.board)

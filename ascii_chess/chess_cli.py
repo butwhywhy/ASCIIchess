@@ -23,10 +23,6 @@ def play():
     white_prompt = '>> '
     black_prompt = white_prompt + move_place_holder
     busy_msg = "Engine thinking ... In a hurry? Type 'now'"
-    def print_engine_move(move):
-        if move != None:
-            print '%s%s' %(white_place_holder if gaming.game.turn() == 'black' 
-                    else black_place_holder, move)
 
     from .engine_helper import DynamicsEvaluator, EvalEngine
     from .variant_tree import TreeEngine
@@ -57,9 +53,10 @@ def play():
 
 
     class Options(object):
-        def __init__(self, level=3, human_only=False, size='m'):
+        def __init__(self, level=3, human_only=False, blind=False, size='m'):
             self.level = level
             self.human_only = human_only
+            self.blind = blind
             self.size = size
 
 
@@ -86,7 +83,7 @@ def play():
                 options.level,
                 'off' if options.human_only else 'on',
                 'on' if simple_engine.print_analysis else 'off',
-                'on',
+                'on' if options.blind else 'off',
                 'large' if options.size.lower() == 'l' else (
                     'small' if options.size.lower() == 's'
                     else 'medium')
@@ -105,10 +102,9 @@ def play():
             elif user_action == 'analysis off':
                 simple_engine.print_analysis = 0
             elif user_action == 'blind on':
-                pass
-                #print 'Option not available yet'
+                options.blind = True
             elif user_action == 'blind off':
-                print 'Option not available yet'
+                options.blind = False
             else:
                 import re
                 mlevel = re.match('level ([0-7])$', user_action)
@@ -124,9 +120,16 @@ def play():
                 print options_help
 
     options = Options()
-    reset_graphics()
 
-    print gaming.draw()
+    def print_engine_move(move):
+        if not options.blind:
+            print gaming.draw(gaming.game.turn())
+        if move != None:
+            print '%s%s' %(white_place_holder if gaming.game.turn() == 'black' 
+                    else black_place_holder, move)
+
+    reset_graphics()
+    print gaming.draw(gaming.game.turn())
 
     while True:
         if gaming.game.result():
@@ -153,7 +156,7 @@ def play():
             if can_quit:
                 sys.exit()
         elif user_action == 'diagram':
-            print gaming.draw()
+            print gaming.draw(gaming.game.turn())
         elif user_action == 'play':
             if saved:
                 saved = False
@@ -179,7 +182,7 @@ def play():
             gaming = GamingEngine(game=game, engine=simple_engine)
             saved = True
             first_move = True
-            print gaming.draw()
+            print gaming.draw(gaming.game.turn())
         elif user_action == 'set':
             set_options()
 

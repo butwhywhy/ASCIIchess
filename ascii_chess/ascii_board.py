@@ -7,6 +7,7 @@ class ChessBoard(object):
         self.side = side
         self.white_darkness = white_darkness
         self.black_darkness = black_darkness
+        self.perspective = 'white'
         self.white_square = Square(self.side, self.side, self.white_darkness, 1)
         self.black_square = Square(self.side, self.side, self.black_darkness, 1)
         ll = self.side * 8 + 2 * self.extra
@@ -16,6 +17,12 @@ class ChessBoard(object):
     def add_piece(self, figure, row, column):
         self.clean_square(row, column)
         self.canvas.add_figure(figure, *self.get_square(row, column))
+
+    def set_perspective(self, player):
+        if player in ('white', 'black'):
+            self.perspective = player
+        else:
+            raise ValueError("Unrecognised perspective " + player)
 
     def set_position(self, white_set, black_set, position=None):
         from .chess_rules import parse_square
@@ -41,8 +48,12 @@ class ChessBoard(object):
 
 
     def get_square(self, row, col):
-        x = col
-        y = 8 - row - 1
+        if self.perspective == 'white':
+            x = col
+            y = 7 - row
+        else:
+            x = 7 - col
+            y = row
         return (self.extra + y * self.side, self.extra + x * self.side)
 
     def __repr__(self):
